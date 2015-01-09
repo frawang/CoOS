@@ -1,11 +1,10 @@
 /**
  *******************************************************************************
- * @file       OsArch.h
- * @version    V1.1.6    
- * @date       2014.05.23
- * @brief      Implement function declare related to Cortex-M3(ARM-v7)
- * @details    This header file including functions or defines related to 
- *             Cortex-M3(ARM-v7).	 		
+ * @file       sizes.h 
+ * @version    V1.0    
+ * @date       2014.12.31
+ * @brief      size header file
+ * @details    This file including some defines and declares related to size.
  *******************************************************************************
  * @copy
  *
@@ -34,43 +33,47 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  *  THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * <h2><center>&copy; COPYRIGHT 2014 CooCox </center></h2>
+ * <h2><center>&copy; COPYRIGHT 2014 Fuzhou Rockchip Electronics Co., Ltd </center></h2>
  *******************************************************************************
- */ 
+ */
 
+#ifndef __COOS_SIZES_H__
+#define __COOS_SIZES_H__
 
-#ifndef  _CPU_H
-#define  _CPU_H
+#define SZ_1				0x00000001
+#define SZ_2				0x00000002
+#define SZ_4				0x00000004
+#define SZ_8				0x00000008
+#define SZ_16				0x00000010
+#define SZ_32				0x00000020
+#define SZ_64				0x00000040
+#define SZ_128				0x00000080
+#define SZ_256				0x00000100
+#define SZ_512				0x00000200
 
+#define SZ_1K				0x00000400
+#define SZ_2K				0x00000800
+#define SZ_4K				0x00001000
+#define SZ_8K				0x00002000
+#define SZ_16K				0x00004000
+#define SZ_32K				0x00008000
+#define SZ_64K				0x00010000
+#define SZ_128K				0x00020000
+#define SZ_256K				0x00040000
+#define SZ_512K				0x00080000
 
-#define NVIC_ST_CTRL    (*((volatile U32 *)0xE000E010))
-#define NVIC_ST_RELOAD  (*((volatile U32 *)0xE000E014))
-#define NVIC_ST_CURRENT  (*((volatile U32 *)0xE000E018))
-#define RELOAD_VAL      ((U32)(( (U32)CFG_CPU_FREQ) / (U32)CFG_SYSTICK_FREQ) -1)
+#define SZ_1M				0x00100000
+#define SZ_2M				0x00200000
+#define SZ_4M				0x00400000
+#define SZ_8M				0x00800000
+#define SZ_16M				0x01000000
+#define SZ_32M				0x02000000
+#define SZ_64M				0x04000000
+#define SZ_128M				0x08000000
+#define SZ_256M				0x10000000
+#define SZ_512M				0x20000000
 
-/*!< Initial System tick.	*/
-#define InitSysTick()   NVIC_ST_RELOAD =  RELOAD_VAL; \
-                        NVIC_ST_CTRL   =  0x0007    
+#define SZ_1G				0x40000000
+#define SZ_2G				0x80000000
 
-#define NVIC_SYS_PRI2   (*((volatile U32 *)0xE000ED1C))
-#define NVIC_SYS_PRI3   (*((volatile U32 *)0xE000ED20))
-
-/*!< Initialize PendSV,SVC and SysTick interrupt priority to lowest.          */
-#define InitInt()       NVIC_SYS_PRI2 |=  0xFF000000;\
-                        NVIC_SYS_PRI3 |=  0xFFFF0000
-
-
-/*---------------------------- Variable declare ------------------------------*/
-extern U64      OSTickCnt;          /*!< Counter for current system ticks.    */									
-
-/*!< Initial context of task being created	*/
-extern OS_STK  *InitTaskContext(FUNCPtr task,void *param,OS_STK *pstk);
-extern void    SwitchContext(void);         /*!< Switch context                   */
-extern void    SetEnvironment(OS_STK *pstk);/*!< Set environment for run          */
-extern U8      Inc8 (volatile U8 *data);
-extern U8      Dec8 (volatile U8 *data);
-extern void    IRQ_ENABLE_RESTORE(void);
-extern void    IRQ_DISABLE_SAVE(void);
-
-
-#endif /* _CPU_H */
+#endif /* __COOS_SIZES_H__ */

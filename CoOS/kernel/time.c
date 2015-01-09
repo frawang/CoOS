@@ -320,8 +320,57 @@ StatusType  CoTimeDelay(U8 hour,U8 minute,U8 sec,U16 millsec)
 }
 #endif
 
+/**
+ *******************************************************************************
+ * @brief      Udelay current task for detail time
+ * @param[in]  usec   Specify the number of microseconds.
+ * 					  usec should less than (1000000 / CFG_SYSTICK_FREQ);
+ * @param[out] None
+ * @retval     E_CALL               Error call in ISR.
+ * @retval     E_INVALID_PARAMETER  Parameter passed was invalid,delay fail.
+ * @retval     E_OK                 The current task was inserted to DELAY list
+ *                                  successful,it will delay for specify time.
 
+ * @par Description
+ * @details    This function delay specify time for current task.
+ *******************************************************************************
+ */
+StatusType CoUdelay(U32 usec)
+{
+	U32 i;
+	U32 start, end, loop;
+	U32 loop_per_usec = CFG_CPU_FREQ / 1000000;
+	U32 max_usec = 1000000 / CFG_SYSTICK_FREQ;
 
+	if (usec > max_usec)
+		return E_INVALID_PARAMETER;
+
+	if (usec == 1) {
+		i = 1;
+		asm volatile (".align 4; 1: subs %0, %0, #1; bne 1b;":"+r" (i));
+		return E_OK;
+	}
+
+	start = NVIC_ST_CURRENT;
+	end = NVIC_ST_CURRENT;
+
+	usec -= 2;
+
+	loop = loop_per_usec * usec;
+
+	if (loop > start) {
+		end = NVIC_ST_RELOAD - (loop - start) + 1;
+		do {
+			if ((NVIC_ST_CURRENT > start) && (NVIC_ST_CURRENT < end))
+				break;
+		} while(1);
+	} else {
+		end = start - loop;
+		while (NVIC_ST_CURRENT > end);
+	}
+
+	return E_OK;
+}
 
 /**
  *******************************************************************************
@@ -394,6 +443,5 @@ void isr_TimeDispose(void)
         TimeDispose();                  /* No,call handler                    */
     }
 }
-
 
 #endif

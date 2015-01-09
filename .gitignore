@@ -7,3 +7,7 @@
 *.dep
 *.uvgui.*
 *.uvopt
+*.cogui
+*.comarker
+*.comemgui
+Rk3368Mcu/

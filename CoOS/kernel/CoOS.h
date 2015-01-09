@@ -101,7 +101,8 @@ typedef void               (*vFUNCPtr)(void);
 #define E_SEV_REQ_FULL        (StatusType)18	
 #define E_NOT_FREE_ALL        (StatusType)19	
 #define E_PROTECTED_TASK      (StatusType)20 
-#define E_OS_IN_LOCK          (StatusType)21												
+#define E_OS_IN_LOCK          (StatusType)21
+#define E_OS_NOTSUPP		  (StatusType)22
 
 
 /*---------------------------- Wait Opreation type  --------------------------*/
@@ -128,6 +129,8 @@ typedef void               (*vFUNCPtr)(void);
 #define EVENT_SORT_TYPE_PRIO  (U8)0x02  /*!< Insert a event by prio           */
 #endif
 
+/*---------------------------- Other define ---------------------------------*/
+#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 
 /*---------------------------- Function declare-------------------------------*/
 
@@ -163,6 +166,7 @@ extern U64         CoGetOSTime(void);
 extern StatusType  CoTickDelay(U32 ticks);
 extern StatusType  CoResetTaskDelayTick(OS_TID taskID,U32 ticks);
 extern StatusType  CoTimeDelay(U8 hour,U8 minute,U8 sec,U16 millsec);
+extern StatusType  CoUdelay(U32 usec);
 
 
 /* Implement in file "timer.c"     */ 
