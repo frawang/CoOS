@@ -89,5 +89,6 @@ typedef volatile struct {
 int Cru_Init(void);
 U32 Cru_GetMcuFreq(void);
 U32 Cru_SetMcuFreq(U32 freq);
+U32 Cru_GetPllFreq(PLL_ID pll_id);
 
 #endif

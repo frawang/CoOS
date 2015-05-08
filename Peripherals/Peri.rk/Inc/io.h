@@ -111,6 +111,35 @@
  #define SRAM_BASE	(MCU_BASE + 0x8c0000)
  #define SRAM_SIZE	SZ_64K
 
+#define     UART_BT_BASE_ADDR                 0x40180000
+#define     UART_BB_BASE_ADDR                 0x40190000
+#define     UART_GPS_BASE_ADDR                0x401B0000
+#define     UART_EXT_BASE_ADDR                0x401C0000
+#define     DMA_PREI_BASE_ADDR                0x40250000
+#define     AXI_GPV_BASE_ADDR                 0x40300000
+#define     NANDC_BASE_ADDR                   0x40410000
+#define     USB_HOST_BASE_ADDR                0x40500000
+#define     HSIC_BASE_ADDR                    0x405C0000
+#define     DMAC_BUS_BASE_ADDR                0x40600000
+#define     DDR_PCTL_BASE_ADDR                0x40610000
+#define     DDR_PHY_BASE_ADDR                 0x40620000
+#define     I2C_PMU_BASE_ADDR                 0x40650000
+#define     UART_DBG_BASE_ADDR                0x40690000
+#define     PMU_INTMEM_BASE_ADDR              0x40720000
+#define     PMU_BASE_ADDR                     0x40730000
+#define     PMU_GRF_BASE_ADDR                 0x40738000
+#define     CRU_BASE_ADDR                     0x40760000
+#define     GRF_BASE_ADDR                     0x40770000
+#define     GPIO0_BASE_ADDR                   0x40750000
+#define     GPIO1_BASE_ADDR                   0x40780000
+#define     GPIO2_BASE_ADDR                   0x40790000
+#define     GPIO3_BASE_ADDR                   0x407A0000
+#define     SRAM_BASE_ADDR                    0x408C0000
+#define     SERVICE_BUS_ADDR                  0x40AC0000
+#define     VOP_BASE_ADDR                     0x40930000
+#define     SDRAM_ADDR              0x00000000
+
+
 #ifdef __cplusplus
 }
 #endif

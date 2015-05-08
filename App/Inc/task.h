@@ -42,7 +42,9 @@
 
 #define TASK_STK_SIZE		128	 				/*!< Define stack size.				*/
 #define	DDR_SET_PRI 		2		   			/*!< Priority of 'ddr' task.		*/
-
+#define JTAG_MUX_PRI        3
 void Create_DdrTask(void);
+void Create_JtagMux_Task(void);
+void creat_suspend_task(void);
 
 #endif

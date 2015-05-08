@@ -43,16 +43,19 @@ UartReg *pUart = (UartReg *)UART2_BASE;
 
 void Uart_SendChar(unsigned char ch)
 {
+#if 0
 	U32 tmo = 10 * 1000; // 10 ms
 
 	while(--tmo && ((pUart->Usr & 0x01) || !(pUart->Usr & 0x02)))
 		CoUdelay(1);
 	
 	pUart->Rbr = (U32)ch;
+#endif
 }
 
 int Uart_Init(void)
 {
+#if 0
 	mut_uart = CoCreateMutex();
 	if(mut_uart == E_CREATE_FAIL)
 		return E_CREATE_FAIL;
@@ -63,5 +66,6 @@ int Uart_Init(void)
 	pUart->Sfe = 0x01;
 
 	return E_OK;
+#endif
 }
 

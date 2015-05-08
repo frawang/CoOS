@@ -37,12 +37,31 @@
  *******************************************************************************
  */ 
 #include <Peri.h>
+#include <coocox.h>
 
 OS_FlagID			flags_chan[NUM_CHANS];	/*!< Flag id,related to mailbox channels.*/
 OS_EventID			mboxs[SCPI_MAX];		/*!< Save id of mailbox.		*/
 
 MboxReg * pMbox = (MboxReg *)MBOX_BASE;
 MboxBuf *pBuf = (MboxBuf *)(SRAM_BASE + SRAM_SIZE - SZ_4K);
+
+#if 0
+static void SetMcuToWfiState(void)
+{    
+    U32 systick_ctl;
+    systick_ctl = NVIC_ST_CTRL;
+    NVIC_ST_CTRL = 0;
+    //for(; ;)
+    {
+        __asm volatile
+        (
+            "wfi    \n"
+        );
+    }
+    NVIC_ST_CTRL = systick_ctl;
+}
+#endif
+extern OS_EventID suspend_mail;
 
 static void Mbox_HandleSysCmd(MboxMsg *pMsg)
 {
@@ -71,8 +90,35 @@ static void Mbox_HandleSysCmd(MboxMsg *pMsg)
 		pBuf = (volatile struct __packed *)pMsg->B2A_Buf;
 		pBuf->Status = SCPI_SUCCESS;
 		freq = Cru_SetMcuFreq(CFG_CPU_FREQ);
-		printf("CoOS: Retry to set %uMhz, real %uMhz\n\r", CFG_CPU_FREQ / 1000000, freq / 1000000);
+		printf("MCU: Retry to set %uMhz, real %uMhz\n\r", CFG_CPU_FREQ / 1000000, freq / 1000000);
 
+		Mbox_CmdDone(pMsg);
+		break;
+	}
+	case SCPI_SYS_SET_MCU_STATE_SUSPEND: {
+		volatile struct __packed {
+			U32 Status;
+		} *pBuf;
+		pBuf = (volatile struct __packed *)pMsg->B2A_Buf;
+        if (isr_PostMail(mboxs[SCPI_CL_SYS], pMsg) != E_OK) 
+        {
+            pBuf->Status = SCPI_ERR_SUPPORT;
+        }
+        else
+    		pBuf->Status = SCPI_SUCCESS;
+		Mbox_CmdDone(pMsg);
+        /* Firstly, send the mailbox message, and then set M3 to WFI state*/
+		//SetMcuToWfiState();
+		break;
+	}
+	case SCPI_SYS_SET_MCU_STATE_RESUME: {
+		volatile struct __packed {
+			U32 Status;
+		} *pBuf;
+        /* Resume M3 from suspend state*/
+		//ResumeMcuFromSuspendState();
+		pBuf = (volatile struct __packed *)pMsg->B2A_Buf;
+		pBuf->Status = SCPI_SUCCESS;
 		Mbox_CmdDone(pMsg);
 		break;
 	}
@@ -97,6 +143,7 @@ void Mbox_CmdDone(MboxMsg *pMsg)
  * @details	   	This is Mailbox interrupt handler,Use to handle Mailbox command.
  *******************************************************************************
  */
+ MboxMsg g_msg[NUM_CHANS];
 void Mbox_IRQHandler(void)
 {
 	MboxId id;
@@ -106,7 +153,7 @@ void Mbox_IRQHandler(void)
     pending = pMbox->A2B_Status;
 
     for(id = 0; id < NUM_CHANS; id++) {
-    	MboxMsg msg;
+    	//MboxMsg msg;
     	Scpi_ClientId sid;
     	if (!(pending & (1 << id)))
     		continue;
@@ -114,25 +161,25 @@ void Mbox_IRQHandler(void)
     	NVIC_ClearPendingIRQ(MBOX0_IRQn + id);
     	pMbox->A2B_Status = 1 << id;
 
-    	msg.Cmd = pMbox->A2B[id].Cmd;
-    	msg.A2B_Buf = pBuf->A2B_Buf[id];
-    	msg.A2B_Size = A2B_SIZE(msg.Cmd);
-    	msg.B2A_Buf = pBuf->B2A_Buf[id];
-    	msg.B2A_Size = pMbox->A2B[id].Data;
-    	msg.Id = id;
+    	g_msg[id].Cmd = pMbox->A2B[id].Cmd;
+    	g_msg[id].A2B_Buf = pBuf->A2B_Buf[id];
+    	g_msg[id].A2B_Size = A2B_SIZE(g_msg[id].Cmd);
+    	g_msg[id].B2A_Buf = pBuf->B2A_Buf[id];
+    	g_msg[id].B2A_Size = pMbox->A2B[id].Data;
+    	g_msg[id].Id = id;
 
-    	sid = CMD_SENDER_ID(msg.Cmd);
-    	printf("CoOS: Chan[%d]: A2B message, cmd 0x%08x\n\r", id, msg.Cmd);
+    	sid = CMD_SENDER_ID(g_msg[id].Cmd);
+    	printf("[%d]MCU: Chan[%d]: A2B message, cmd 0x%08x\n\r",(U32)OSTickCnt, id, g_msg[id].Cmd);
     	if (sid > SCPI_MAX) {
-    		* ((U32 *)msg.B2A_Buf) = SCPI_ERR_SUPPORT;
-    		Mbox_CmdDone(&msg);
+    		* ((U32 *)g_msg[id].B2A_Buf) = SCPI_ERR_SUPPORT;
+    		Mbox_CmdDone(&g_msg[id]);
     	}
     	else if (sid == SCPI_CL_SYS) {
-    		Mbox_HandleSysCmd(&msg);
+    		Mbox_HandleSysCmd(&g_msg[id]);
     	} else {
-    		if (isr_PostMail(mboxs[sid], &msg) != E_OK) {
-    			* ((U32 *)msg.B2A_Buf) = SCPI_ERR_SUPPORT;
-    			Mbox_CmdDone(&msg);
+    		if (isr_PostMail(mboxs[sid], &g_msg[id]) != E_OK) {
+    			* ((U32 *)g_msg[id].B2A_Buf) = SCPI_ERR_SUPPORT;
+    			Mbox_CmdDone(&g_msg[id]);
     		}
     	}
     }

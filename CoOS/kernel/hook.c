@@ -38,6 +38,7 @@
 
 
 /*---------------------------- Inlcude --------------------------------------*/
+#include <peri.h>
 #include <coocox.h>
 
 /**
@@ -51,12 +52,18 @@
  * @details    This function is system IDLE task code.	 
  *******************************************************************************
  */
-void CoIdleTask(void* pdata)
+__sramfunc void CoIdleTask(void* pdata)
 {
     /* Add your codes here */
     for(; ;) 
     {
         /* Add your codes here */
+        #if 0
+        __asm volatile
+        (
+            "wfi    \n"
+        );
+        #endif
     }
 }
 

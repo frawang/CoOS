@@ -45,10 +45,12 @@
 #include <CoOS.h>
 #include <stdio.h>
 
+#include <sram.h>
 #include <irq.h>
 #include <uart.h>
 #include <cru.h>
 #include <mailbox.h>
+#include <ddr_rk3368.h>
 
 typedef enum IRQn {
 	SysTick_IRQn		= -1,

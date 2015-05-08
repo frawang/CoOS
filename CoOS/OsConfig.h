@@ -56,7 +56,7 @@ Defines the lowest priority that be assigned.
 /*!< 
 Max number of tasks that can be running.		     
 */			
-#define CFG_MAX_USER_TASKS      (5)
+#define CFG_MAX_USER_TASKS      (6)
 
 /*!< 
 Idle task stack size(word).		                         
@@ -179,7 +179,7 @@ Enable(1) or disable(0) kernel heap management.
 Kernel heap size(word).      
 */ 
 #if CFG_KHEAP_EN >0
-#define KHEAP_SIZE              (50)
+#define KHEAP_SIZE              (1000)
 #endif   
 
 
@@ -247,7 +247,7 @@ Enable(1) or disable(0) queue management.
 Max number of queue.(less than CFG_MAX_EVENT).       
 */
 #if	CFG_QUEUE_EN >0	
-#define CFG_MAX_QUEUE           (2)
+#define CFG_MAX_QUEUE           5
 #endif   // CFG_QUEUE_EN
 	
 #endif   // CFG_EVENT_EN

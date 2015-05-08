@@ -40,10 +40,9 @@
 
 CruReg * pCru = (CruReg *)CRU_BASE;
 
-static U32 Cru_GetPllFreq(PLL_ID pll_id)
+U32 Cru_GetPllFreq(PLL_ID pll_id)
 {
 	U32 freq = 0;
-
 	if (((pCru->Pll_Con[pll_id][3] >> 8)&0x3) == NORMAL_MODE)	/* Normal mode*/
 		freq = 24 * ((pCru->Pll_Con[pll_id][1] & 0x1fff) + 1)	/* NF */
 		    / ((pCru->Pll_Con[pll_id][0] & 0xf)+1)/(((pCru->Pll_Con[pll_id][0] >> 8)&0x3f)+1);
@@ -77,7 +76,13 @@ U32 Cru_SetMcuFreq(U32 freq)
 	U32 div;
 
 	mcu_pll = GPLL;
-	freq_pll = Cru_GetPllFreq(mcu_pll);
+//    freq_pll = Cru_GetPllFreq(mcu_pll);
+#if 1
+    do
+    {
+        freq_pll = Cru_GetPllFreq(mcu_pll);
+    }while(freq_pll != 576000000);
+#endif
 
 	div = DIV_ROUND_UP(freq_pll, freq);
 
@@ -85,15 +90,14 @@ U32 Cru_SetMcuFreq(U32 freq)
 	pCru->Clksel_Con[12] = (0x01 << (7 + 16)) | (0x01 << 7); /* Select gPLL 384Mhz */
 
 	freq_real = freq_pll / ((pCru->Clksel_Con[12] & 0x1f) + 1);
-
 	return freq_real;
 }
-
+/*MCU freq and release reset singel are set by uboot */
 int Cru_Init(void)
 {
-	U32 freq = Cru_SetMcuFreq(CFG_CPU_FREQ);
+	U32 freq = Cru_GetPllFreq(GPLL)  / ((pCru->Clksel_Con[12] & 0x1f) + 1);
 
-	printf("CoOS: Cru: Try to set %uMhz, real %uMhz\n\r", CFG_CPU_FREQ / 1000000, freq / 1000000);
+	printf("MCU: Cru: Try to set %uMhz, real %uMhz\n\r", CFG_CPU_FREQ / 1000000, freq / 1000000);
 
 	return E_OK;
 }

@@ -46,11 +46,19 @@ typedef enum scpi_client_id {
 } Scpi_ClientId;
 
 typedef enum scpi_ddr_cmd {
-	SCPI_DDR_CHANGE_FREQ,
+    SCPI_DDR_INIT,	
+	SCPI_DDR_SET_FREQ,
+    SCPI_DDR_ROUND_RATE,	
+    SCPI_DDR_AUTO_SELF_REFRESH,	
+    SCPI_DDR_BANDWIDTH_GET,
+    SCPI_DDR_GET_FREQ,	
 } Scpi_DdrCmd;
+
 typedef enum scpi_sys_cmd {
 	SCPI_SYS_GET_VERSION,
 	SCPISYS_REFRESH_MCU_FREQ,
+	SCPI_SYS_SET_MCU_STATE_SUSPEND,
+	SCPI_SYS_SET_MCU_STATE_RESUME,
 } Scpi_SysCmd;
 
 typedef enum scpi_std_cmd {
