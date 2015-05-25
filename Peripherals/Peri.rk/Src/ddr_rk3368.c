@@ -45,6 +45,40 @@ static const uint8 ddr3_cl_cwl[22][7]={
          {((10<<4)|7),   ((10<<4)|7),   ((10<<4)|7),    ((10<<4)|7),  ((11<<4)|8),   ((13<<4)|9),  ((14<<4)|10)} //DDR3_DEFAULT
 };
 
+static const uint8 ddr3_cl_cwl_3328[22][7]={
+/*speed   0~330         331~400       401~533        534~666       667~800        801~933      934~1066
+ * tCK    >3            2.5~3         1.875~2.5      1.5~1.875     1.25~1.5       1.07~1.25    0.938~1.07
+ *        cl<<4, cwl    cl<<4, cwl    cl<<4, cwl              */
+         {((5<<4)|5),   ((5<<4)|5),   0         ,    0,            0,             0,            0}, //DDR3_800D (5-5-5)
+         {((5<<4)|5),   ((6<<4)|5),   0         ,    0,            0,             0,            0}, //DDR3_800E (6-6-6)
+
+         {((5<<4)|5),   ((5<<4)|5),   ((6<<4)|6),    0,            0,             0,            0}, //DDR3_1066E (6-6-6)
+         {((5<<4)|5),   ((6<<4)|5),   ((7<<4)|6),    0,            0,             0,            0}, //DDR3_1066F (7-7-7)
+         {((5<<4)|5),   ((6<<4)|5),   ((8<<4)|6),    0,            0,             0,            0}, //DDR3_1066G (8-8-8)
+
+         {((5<<4)|5),   ((5<<4)|5),   ((6<<4)|6),    ((7<<4)|7),   0,             0,            0}, //DDR3_1333F (7-7-7)
+         {((5<<4)|5),   ((5<<4)|5),   ((7<<4)|6),    ((8<<4)|7),   0,             0,            0}, //DDR3_1333G (8-8-8)
+         {((5<<4)|5),   ((6<<4)|5),   ((8<<4)|6),    ((9<<4)|7),   0,             0,            0}, //DDR3_1333H (9-9-9)
+         {((5<<4)|5),   ((6<<4)|5),   ((8<<4)|6),    ((10<<4)|7),  0,             0,            0}, //DDR3_1333J (10-10-10)
+
+         {((5<<4)|5),   ((5<<4)|5),   ((6<<4)|6),    ((7<<4)|7),   ((8<<4)|8),    0,            0}, //DDR3_1600G (8-8-8)
+         {((5<<4)|5),   ((5<<4)|5),   ((6<<4)|6),    ((8<<4)|7),   ((9<<4)|8),    0,            0}, //DDR3_1600H (9-9-9)
+         {((5<<4)|5),   ((5<<4)|5),   ((7<<4)|6),    ((9<<4)|7),   ((10<<4)|8),   0,            0}, //DDR3_1600J (10-10-10)
+         {((5<<4)|5),   ((6<<4)|5),   ((8<<4)|6),    ((10<<4)|7),  ((11<<4)|8),   0,            0}, //DDR3_1600K (11-11-11)
+
+         {((5<<4)|5),   ((5<<4)|5),   ((6<<4)|6),    ((8<<4)|7),   ((9<<4)|8),    ((11<<4)|9),  0}, //DDR3_1866J (10-10-10)
+         {((5<<4)|5),   ((5<<4)|5),   ((7<<4)|6),    ((8<<4)|7),   ((10<<4)|8),   ((11<<4)|9),  0}, //DDR3_1866K (11-11-11)
+         {((6<<4)|5),   ((6<<4)|5),   ((7<<4)|6),    ((9<<4)|7),   ((11<<4)|8),   ((12<<4)|9),  0}, //DDR3_1866L (12-12-12)
+         {((6<<4)|5),   ((6<<4)|5),   ((8<<4)|6),    ((10<<4)|7),  ((11<<4)|8),   ((13<<4)|9),  0}, //DDR3_1866M (13-13-13)
+
+         {((5<<4)|5),   ((5<<4)|5),   ((6<<4)|6),    ((7<<4)|7),   ((9<<4)|8),    ((10<<4)|9),  ((11<<4)|10)}, //DDR3_2133K (11-11-11)
+         {((5<<4)|5),   ((5<<4)|5),   ((6<<4)|6),    ((8<<4)|7),   ((9<<4)|8),    ((11<<4)|9),  ((12<<4)|10)}, //DDR3_2133L (12-12-12)
+         {((5<<4)|5),   ((5<<4)|5),   ((7<<4)|6),    ((9<<4)|7),   ((10<<4)|8),   ((12<<4)|9),  ((13<<4)|10)}, //DDR3_2133M (13-13-13)
+         {((6<<4)|5),   ((6<<4)|5),   ((7<<4)|6),    ((9<<4)|7),   ((11<<4)|8),   ((13<<4)|9),  ((14<<4)|10)},  //DDR3_2133N (14-14-14)
+
+         {((6<<4)|5),   ((6<<4)|5),   ((7<<4)|6),    ((9<<4)|7),  ((11<<4)|8),   ((13<<4)|9),  ((14<<4)|10)} //DDR3_DEFAULT
+};
+
 static const uint16 ddr3_tRC_tFAW[22]={
 /**    tRC    tFAW   */
     ((50<<8)|50), //DDR3_800D (5-5-5)
@@ -459,13 +493,28 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         } else {
             tmp = 6;
         }
-        if (nMHz <= DDR3_DDR2_DLL_DISABLE_FREQ) {   /*when dll bypss cl = cwl = 6*/
-            cl = 10;
-            cwl = 7;
-        } else {
-            cl = ddr3_cl_cwl[p_ddr_reg->ddr_speed_bin][tmp] >> 4;
-            cwl =
-                ddr3_cl_cwl[p_ddr_reg->ddr_speed_bin][tmp] & 0xf;
+        /*3368*/
+		if(pDDR_Reg->TDPD == 1)
+		{
+	        if (nMHz <= DDR3_DDR2_DLL_DISABLE_FREQ) {   /*when dll bypss cl = cwl = 6*/
+	            cl = 10;
+	            cwl = 7;
+	        } else {
+	            cl = ddr3_cl_cwl[p_ddr_reg->ddr_speed_bin][tmp] >> 4;
+	            cwl =
+	                ddr3_cl_cwl[p_ddr_reg->ddr_speed_bin][tmp] & 0xf;
+	        }
+        }
+        else
+        {
+	        if (nMHz <= DDR3_DDR2_DLL_DISABLE_FREQ) {   /*when dll bypss cl = cwl = 6*/
+	            cl = 6;
+	            cwl = 6;
+	        } else {
+	            cl = ddr3_cl_cwl_3328[p_ddr_reg->ddr_speed_bin][tmp] >> 4;
+	            cwl =
+	                ddr3_cl_cwl_3328[p_ddr_reg->ddr_speed_bin][tmp] & 0xf;
+	        }
         }
         if (cl == 0) {
             ret = -4;   /*超过颗粒的最大频率*/
@@ -681,7 +730,7 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         /*
          * tDPD, 0
          */
-        p_pctl_timing->tdpd = 0;
+        p_pctl_timing->tdpd = pDDR_Reg->TDPD;
 
         /**************************************************
         *NOC Timing
@@ -977,7 +1026,7 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         /*
          * tDPD, 500us
          */
-        p_pctl_timing->tdpd = LPDDR2_tDPD_US;
+        p_pctl_timing->tdpd = pDDR_Reg->TDPD;
 
         /*************************************************
         * NOC Timing
@@ -1057,36 +1106,57 @@ static uint32 ddr_get_parameter(uint32 nMHz)
             cwl = 5;
             p_ddr_reg->ddrMR[2] = LPDDR3_RL9_WL5;
         }
-        else */if(nMHz<=667)
+        else */
+        /*3368*/
+		if(pDDR_Reg->TDPD == 1)
         {
-            cl = 10;
-            cwl = 6;
-            p_ddr_reg->ddrMR[2] = LPDDR3_RL10_WL6;
-        }
-        else if(nMHz<=733)
-        {
-            cl = 11;
-            cwl = 6;
-           p_ddr_reg->ddrMR[2] = LPDDR3_RL11_WL6;
-        }
-        else if(nMHz<=800)
-        {
-            cl = 12;
-            cwl = 6;
-            p_ddr_reg->ddrMR[2] = LPDDR3_RL12_WL6;
-        }
-        else if(nMHz<=933)
-        {
-            cl = 14;
-            cwl = 8;
-            p_ddr_reg->ddrMR[2] = LPDDR3_RL14_WL8;
-        }
-        else //(nMHz<=1066)
-        {
-            cl = 16;
-            cwl = 8;
-            p_ddr_reg->ddrMR[2] = LPDDR3_RL16_WL8;
-        }
+	        if(nMHz<=667)
+	        {
+	            cl = 10;
+	            cwl = 6;
+	            p_ddr_reg->ddrMR[2] = LPDDR3_RL10_WL6;
+	        }
+	        else if(nMHz<=733)
+	        {
+	            cl = 11;
+	            cwl = 6;
+	           p_ddr_reg->ddrMR[2] = LPDDR3_RL11_WL6;
+	        }
+	        else if(nMHz<=800)
+	        {
+	            cl = 12;
+	            cwl = 6;
+	            p_ddr_reg->ddrMR[2] = LPDDR3_RL12_WL6;
+	        }
+	        else if(nMHz<=933)
+	        {
+	            cl = 14;
+	            cwl = 8;
+	            p_ddr_reg->ddrMR[2] = LPDDR3_RL14_WL8;
+	        }
+	        else //(nMHz<=1066)
+	        {
+	            cl = 16;
+	            cwl = 8;
+	            p_ddr_reg->ddrMR[2] = LPDDR3_RL16_WL8;
+	        }
+		}
+		else
+		{
+			if(nMHz<=533)
+			{
+				cl = 8;
+				cwl = 4;
+				p_ddr_reg->ddrMR[2] = LPDDR3_RL8_WL4;
+			}
+			else
+			{
+				cl = 9;
+				cwl = 5;
+				p_ddr_reg->ddrMR[2] = LPDDR3_RL9_WL5;
+			}
+		}
+
         p_ddr_reg->ddrMR[3] = LPDDR3_DS_34;
         if(nMHz <= DDR3_DDR2_ODT_DISABLE_FREQ)
         {
@@ -1313,7 +1383,7 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         /*
          * tDPD, 500us
          */
-        p_pctl_timing->tdpd = LPDDR3_tDPD_US;
+        p_pctl_timing->tdpd = pDDR_Reg->TDPD;
 
         /**************************************************
          * NOC Timing
@@ -1625,6 +1695,11 @@ uint32 rk3368_ddr_change_freq(uint32 nMHz)
     uint32 ret;
     uint32 freq_slew;
 
+	if((pDDR_Reg->TDPD != 1) && (nMHz > 600))
+	{
+		nMHz = 600;
+	}
+
     ret = ddr_setSys_pll(nMHz, 0);
     if (ret == ddr_freq) {
         goto out;
@@ -1735,7 +1810,16 @@ int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type)
 
 	//ddr_print("RK3368 version 1.00 20141111\n");
 	p_ddr_reg = &ddr_reg;
-	ddr_reg.ddr_speed_bin = dram_speed_bin;
+	/*
+	*unused tDPD and used this timing to indicate chip type
+	*old version this value:D3:0  LP3 500 LP2 500
+	*new version this value:3368:1  3328:0
+	*/
+	if(pDDR_Reg->TDPD == 1)
+		ddr_reg.ddr_speed_bin = 21;
+	else
+		ddr_reg.ddr_speed_bin = dram_speed_bin;
+
 	ddr_freq = 0;
 	ddr_reg.ddr_sr_idle = 0;
     ddr_reg.ddr_dll_status = DDR3_DLL_DISABLE;

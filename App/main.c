@@ -38,7 +38,7 @@ void task_init(void *pdata)
 int main(void)
 {
 	uart_printf("MCU: Initialize MCU V2.02 20150430\n\r");
-    *(volatile U32*)0x0 = 2015050803;/*addr 0 is M3 MSP value*/
+    *(volatile U32*)0x0 = 2015052604;/*addr 0 is M3 MSP value*/
 	/*v1.04 20150401:training used cs 0*/
 	/*V1.05 20150402:mailbox used global msg*/
 	/*V2.00 20150403:*/
@@ -47,7 +47,8 @@ int main(void)
 	/*V2.02 20150425:support mcu coos code at dram and DCF code at sram*/
 	/*V2.02 20150430 addr 0 used to store mcu code version*/
 	/*V2.03 2015050703 for ddr3 dll bypass cl 10 cwl 7*/
-	/*V2.03 20150803 set idle task to sram*/
+	/*V2.03 2015050803 set idle task to sram*/
+	/*V2.04 2015052604 add 3328 supported*/
 	/*hy v1.01 set (mmu_status == 0)*/
 	/*hy v1.02 :"MCU: Initialize MCU V2.01 20150420_MMUstall_hy_V1.02" ÐÞ¸Ädisable stall Ìõ¼þ¶ª£»*/
 	/*cru must be inital first if not coos may can't run task*/
