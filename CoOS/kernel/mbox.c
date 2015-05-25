@@ -248,6 +248,7 @@ void* CoPendMail(OS_EventID id,U32 timeout,StatusType* perr)
             OsSchedUnlock();
             if( curTCB->pmail == Co_NULL)  /* Time-out occurred                  */
             {
+                pecb->eventCounter = 0;
                 *perr = E_TIMEOUT;
                 return Co_NULL;
             }
@@ -304,7 +305,7 @@ StatusType CoPostMail(OS_EventID id,void* pmail)
     {
         OsSchedLock();
         pecb->eventPtr     = pmail;       /* Place message in mailbox         */
-        pecb->eventCounter = 1;
+//        pecb->eventCounter = 1;
         EventTaskToRdy(pecb);             /* Check waiting list               */
         OsSchedUnlock();
         return E_OK;	

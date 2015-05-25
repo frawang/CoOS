@@ -157,8 +157,7 @@ void Mbox_IRQHandler(void)
     	Scpi_ClientId sid;
     	if (!(pending & (1 << id)))
     		continue;
-    	/* clear interrupt pending bit */
-    	NVIC_ClearPendingIRQ(MBOX0_IRQn + id);
+
     	pMbox->A2B_Status = 1 << id;
 
     	g_msg[id].Cmd = pMbox->A2B[id].Cmd;
@@ -182,6 +181,9 @@ void Mbox_IRQHandler(void)
     			Mbox_CmdDone(&g_msg[id]);
     		}
     	}
+	
+        /* clear interrupt pending bit */
+        NVIC_ClearPendingIRQ(MBOX0_IRQn + id);
     }
 
 	CoExitISR();

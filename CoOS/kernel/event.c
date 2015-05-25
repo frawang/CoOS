@@ -351,7 +351,7 @@ void EventTaskToRdy(P_ECB pecb)
     {
         ptcb->pmail    = pecb->eventPtr;  /* Yes,send mail to task            */
         pecb->eventPtr = Co_NULL;            /* Clear event sign                 */
-        //pecb->eventCounter--;
+        pecb->eventCounter = 1;
     }
 #endif
 #if CFG_QUEUE_EN >0
