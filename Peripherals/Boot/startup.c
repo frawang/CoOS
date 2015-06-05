@@ -16,6 +16,7 @@
  */
  
 #include <peri.h>
+#include "sram.h"
 
 /*----------Stack Configuration-----------------------------------------------*/  
 #define STACK_SIZE       0x00000100      /*!< The Stack size suggest using even number   */
@@ -51,6 +52,10 @@ extern unsigned long _edata;     /*!< End address for the .data section       */
 extern unsigned long _sbss;      /*!< Start address for the .bss section      */
 extern unsigned long _ebss;      /*!< End address for the .bss section        */      
 extern void _eram;               /*!< End address for ram                     */
+
+/* SRAM section definitions from the linker */
+extern unsigned long __sram_code_start, __ssram_code_text, __esram_code_text;
+extern unsigned long __sram_data_start, __ssram_data, __esram_data;
 
 
 /*----------Function prototypes-----------------------------------------------*/  
@@ -110,6 +115,7 @@ void Default_Reset_Handler(void)
 {
   /* Initialize data and bss */
   unsigned long *pulSrc, *pulDest;
+  U32 sram_size = MCU_SRAM_SIZE;
 
   /* Copy the data segment initializers from flash to SRAM */
   pulSrc = &_sidata;
@@ -130,6 +136,27 @@ void Default_Reset_Handler(void)
         "    it      lt\n"
         "    strlt   r2, [r0], #4\n"
         "    blt     zero_loop");
+  
+  /* Zero sram segment. */
+  pulDest = &__ssram_code_text;
+  while (sram_size > 0) {
+	  *(pulDest++) = 0;
+	  sram_size -= sizeof(*pulDest);
+  }
+
+  /* Copy sram code from DDR to SRAM */
+  pulDest = &__ssram_code_text;
+  pulSrc = &__sram_code_start;
+  while(pulDest < &__esram_code_text) {
+	  *(pulDest++) = *(pulSrc++);
+  }
+
+  /* Copy sram data from DDR to SRAM */
+  pulDest = &__ssram_data;
+  pulSrc = &__sram_data_start;
+  while(pulDest < &__esram_data) {
+	  *(pulDest++) = *(pulSrc++);
+  }
 	
   /* Call the application's entry point.*/
   main();

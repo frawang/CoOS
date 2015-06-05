@@ -2,6 +2,7 @@
 #include <coocox.h>
 #include <sram.h>
 
+#if 0
 /* SRAM section definitions from the linker */
 extern char __sram_code_start, __ssram_code_text, __esram_code_text;
 extern char __sram_data_start, __ssram_data, __esram_data;
@@ -62,4 +63,5 @@ int mcu_sram_init(void)
 
     return 0;
 }
+#endif
 

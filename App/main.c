@@ -27,7 +27,6 @@ void task_init(void *pdata)
 	if (Mbox_Init() != E_OK)
 		uart_printf("MCU: Peri: Initialize Mailbox...        [Fail]\n\r");
 
-    mcu_sram_init();
 	/* Applications initialize */
 	Create_DdrTask();
 	Create_JtagMux_Task();
