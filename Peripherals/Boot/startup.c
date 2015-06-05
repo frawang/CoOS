@@ -19,7 +19,7 @@
 #include "sram.h"
 
 /*----------Stack Configuration-----------------------------------------------*/  
-#define STACK_SIZE       0x00000100      /*!< The Stack size suggest using even number   */
+#define STACK_SIZE       0x00000200      /*!< The Stack size suggest using even number   */
 __attribute__ ((section(".co_stack")))
 unsigned long pulStack[STACK_SIZE];      
 
@@ -190,10 +190,14 @@ void Default_Reset_Handler(void)
   */
 static void Default_Handler(void) 
 {
-	/* Go into an infinite loop. */
-	while (1) 
-	{
-	}
+	register U32 exc_return, xPSR;
+	
+	__asm volatile ("MOV %0, lr" : "=r" (exc_return));
+	__asm volatile ("MRS %0, xpsr" : "=r" (xPSR));
+    printf("\n[MCU]:Exception, xPSR=0x%02x, LR=0x%02x\n", xPSR, exc_return);
+
+    /* Go into an infinite loop. */
+    while (1) ;
 }
 
 /*********************** (C) COPYRIGHT 2009 Coocox ************END OF FILE*****/

@@ -49,9 +49,9 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 
 		pBuf_rx = (volatile struct __packed1 *)pMsg->A2B_Buf;
 		pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
-		printf("[%d]MCU:Change to %dMHz->  ",(U32)OSTickCnt,pBuf_rx->clk_rate);
+//		printf("[%d]MCU:Change to %dMHz->  ",(U32)OSTickCnt,pBuf_rx->clk_rate);
 		gDdr_freq_MHz = rk3368_ddr_change_freq(pBuf_rx->clk_rate);
-		printf("[%d]success %dMHz\n\r",(U32)OSTickCnt,gDdr_freq_MHz);
+//		printf("[%d]success %dMHz\n\r",(U32)OSTickCnt,gDdr_freq_MHz);
 		pBuf_tx->Status = SCPI_SUCCESS;
 		Mbox_CmdDone(pMsg);
 		break;
@@ -171,10 +171,10 @@ void task_ddr(void *pdata)
                 freq = min_freq + rand();
                 freq %= max_freq;
             }while(freq < min_freq);
-            printf("MCU:Change to %d\n\r",freq);
+//            printf("MCU:Change to %d\n\r",freq);
             freq = rk3368_ddr_change_freq(freq);
             times +=1;
-            printf("MCU:Change succ %d,times = %d\n\r",freq,times);
+//            printf("MCU:Change succ %d,times = %d\n\r",freq,times);
 	    }
         #endif
 		StatusType err;

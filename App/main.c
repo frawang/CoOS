@@ -1,6 +1,8 @@
 #include <peri.h>
 #include <task.h>
 
+#define MCU_SW_VERSION   "V2.04 2015052604"
+
 /*---------------------------------- Variable Define -------------------------*/
 OS_STK   task_init_stk[TASK_STK_SIZE];	 	/*!< Stack of 'task_init' task.	*/
 
@@ -17,15 +19,14 @@ static void uart_printf (char *ptr)
 void task_init(void *pdata)
 {
 	/* Peripherals initialize */
-#if 0
 	if (Uart_Init() != E_OK)
-		uart_printf("MCU: Peri: Initialize Uart...        [Fail]\n\r");
-#endif
+		printf("[MCU]:Init uart failed\n");
+
 	if (Cru_Init() != E_OK)
-		uart_printf("MCU: Peri: Initialize Cru...        [Fail]\n\r");
+		printf("[MCU]:Init cru failed\n");
 
 	if (Mbox_Init() != E_OK)
-		uart_printf("MCU: Peri: Initialize Mailbox...        [Fail]\n\r");
+		printf("[MCU]:Init mailbox failed\n");
 
 	/* Applications initialize */
 	Create_DdrTask();
@@ -36,8 +37,8 @@ void task_init(void *pdata)
 
 int main(void)
 {
-	uart_printf("MCU: Initialize MCU V2.02 20150430\n\r");
-    *(volatile U32*)0x0 = 2015052604;/*addr 0 is M3 MSP value*/
+	printf("\nMCU Version %s\n", MCU_SW_VERSION);
+//    *(volatile U32*)0x0 = 2015052604;/*addr 0 is M3 MSP value*/
 	/*v1.04 20150401:training used cs 0*/
 	/*V1.05 20150402:mailbox used global msg*/
 	/*V2.00 20150403:*/
@@ -52,12 +53,14 @@ int main(void)
 	/*hy v1.02 :"MCU: Initialize MCU V2.01 20150420_MMUstall_hy_V1.02" ÐÞ¸Ädisable stall Ìõ¼þ¶ª£»*/
 	/*cru must be inital first if not coos may can't run task*/
 	CoInitOS();							/*!< Initial CooCox RTOS 			  */
-	uart_printf ("...       [OK]. \n\r");
-	uart_printf ("MCU: Create a initial task...        ");	
+//	uart_printf ("...       [OK]. \n\r");
+//	uart_printf ("MCU: Create a initial task...        ");	
 	CoCreateTask(task_init, (void *)0, 10,&task_init_stk[TASK_STK_SIZE-1], TASK_STK_SIZE);
-	uart_printf (" [OK]. \n\r");
-	uart_printf("MCU: Start MCU...\n\r");
+//	uart_printf (" [OK]. \n\r");
+//	uart_printf("MCU: Start MCU...\n\r");
 	CoStartOS();
+    
+	printf("[MCU]:CoOS start failed\n");
     while(1);
 
     return 0;

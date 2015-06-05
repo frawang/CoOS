@@ -1839,27 +1839,27 @@ int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type)
     *(uint32*)(GPIO0_BASE_ADDR +4)|= (0x1<<28);//D4 out
     ddr_delayus(1);
     */
-    printf("MCU:ddr init DRAM Type:");
+//    printf("MCU:ddr init DRAM Type:");
 	switch (p_ddr_reg->mem_type) {
     	case DDR3:
-    		printf("DDR3");
+//    		printf("DDR3");
     		break;
     	case LPDDR2:
-    		printf("LPDDR2");
+//    		printf("LPDDR2");
     		break;
     	case LPDDR3:
-    	    printf("LPDDR3");
+//    	    printf("LPDDR3");
     	    break;
     	default:
     		printf("error type=%d", (p_ddr_reg->mem_type));
 	}
-	printf("  Cap=%dMB", (ddr_get_cap(1) >> 20));
+//	printf("  Cap=%dMB", (ddr_get_cap(1) >> 20));
     if(freq == 0)
     {
          freq = ddr_get_dram_freq();
     }
     nMHz = rk3368_ddr_change_freq(freq);
-    printf("  freq:%dMHz\n\r",nMHz);
+//    printf("  freq:%dMHz\n\r",nMHz);
 	/*ddr_print("init success!!! freq=%luMHz\n",
 		  nMHz);
     */

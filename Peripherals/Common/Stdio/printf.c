@@ -461,7 +461,6 @@ signed int fprintf(FILE *pStream, const char *pFormat, ...)
  */
 signed int printf(const char *pFormat, ...)
 {
-#if 0
     va_list ap;
     signed int result;
 
@@ -473,7 +472,6 @@ signed int printf(const char *pFormat, ...)
     CoLeaveMutexSection(mut_uart); 			/*!< Leave mutex area.		*/
 
     return result;
-#endif
 }
 
 

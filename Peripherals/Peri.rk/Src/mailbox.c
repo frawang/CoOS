@@ -90,7 +90,7 @@ static void Mbox_HandleSysCmd(MboxMsg *pMsg)
 		pBuf = (volatile struct __packed *)pMsg->B2A_Buf;
 		pBuf->Status = SCPI_SUCCESS;
 		freq = Cru_SetMcuFreq(CFG_CPU_FREQ);
-		printf("MCU: Retry to set %uMhz, real %uMhz\n\r", CFG_CPU_FREQ / 1000000, freq / 1000000);
+//		printf("MCU: Retry to set %uMhz, real %uMhz\n\r", CFG_CPU_FREQ / 1000000, freq / 1000000);
 
 		Mbox_CmdDone(pMsg);
 		break;
@@ -168,7 +168,7 @@ void Mbox_IRQHandler(void)
     	g_msg[id].Id = id;
 
     	sid = CMD_SENDER_ID(g_msg[id].Cmd);
-    	printf("[%d]MCU: Chan[%d]: A2B message, cmd 0x%08x\n\r",(U32)OSTickCnt, id, g_msg[id].Cmd);
+//    	printf("[%d]MCU: Chan[%d]: A2B message, cmd 0x%08x\n\r",(U32)OSTickCnt, id, g_msg[id].Cmd);
     	if (sid > SCPI_MAX) {
     		* ((U32 *)g_msg[id].B2A_Buf) = SCPI_ERR_SUPPORT;
     		Mbox_CmdDone(&g_msg[id]);

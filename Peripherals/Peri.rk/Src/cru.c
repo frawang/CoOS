@@ -97,7 +97,7 @@ int Cru_Init(void)
 {
 	U32 freq = Cru_GetPllFreq(GPLL)  / ((pCru->Clksel_Con[12] & 0x1f) + 1);
 
-	printf("MCU: Cru: Try to set %uMhz, real %uMhz\n\r", CFG_CPU_FREQ / 1000000, freq / 1000000);
+//	printf("MCU: Cru: Try to set %uMhz, real %uMhz\n\r", CFG_CPU_FREQ / 1000000, freq / 1000000);
 
 	return E_OK;
 }
