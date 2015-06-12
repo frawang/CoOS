@@ -103,10 +103,11 @@ static void Mbox_HandleSysCmd(MboxMsg *pMsg)
         if (isr_PostMail(mboxs[SCPI_CL_SYS], pMsg) != E_OK) 
         {
             pBuf->Status = SCPI_ERR_SUPPORT;
+            Mbox_CmdDone(pMsg);
         }
         else
-    		pBuf->Status = SCPI_SUCCESS;
-		Mbox_CmdDone(pMsg);
+            pBuf->Status = SCPI_SUCCESS;
+//      Mbox_CmdDone(pMsg);
         /* Firstly, send the mailbox message, and then set M3 to WFI state*/
 		//SetMcuToWfiState();
 		break;

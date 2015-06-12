@@ -45,10 +45,19 @@ void Create_JtagMux_Task(void)
 	CoCreateTask(task_jtagmux, (void *)0, JTAG_MUX_PRI, &task_jtagmux_stk[TASK_STK_SIZE-1], TASK_STK_SIZE);
 }
 
-static void SetMcuToWfiState(void)
-{    
-    U32 systick_ctl;
-    systick_ctl = NVIC_ST_CTRL & 0xf;
+static void SetMcuToWfiState(MboxMsg *pMsg)
+{
+    U32 systick_ctl = NVIC_ST_CTRL & 0xf;
+    volatile struct __packed2 {
+        U32 Status;
+    } *pBuf_tx;
+
+    pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
+    pBuf_tx->Status = SCPI_SUCCESS;
+
+    IRQ_DISABLE_SAVE();
+
+    Mbox_CmdDone(pMsg);
     NVIC_ST_CTRL = 0;
 
     __asm volatile
@@ -56,18 +65,22 @@ static void SetMcuToWfiState(void)
         //"b .\n"
         "wfi    \n"
     );
+    
     NVIC_ST_CTRL = systick_ctl;
+    IRQ_ENABLE_RESTORE ();
 }
 
 void task_suspend(void *pdata)
 {
+    StatusType err;
+    MboxMsg *pMsg = Co_NULL;
+
     for (; ;) {
-        StatusType err;
-        CoPendMail(mboxs[SCPI_CL_SYS], 0, &err);
+        pMsg = CoPendMail(mboxs[SCPI_CL_SYS], 0, &err);
         //CoPendMail(suspend_mail, 0, &err);
         if (err == E_OK)
         {
-            SetMcuToWfiState();
+            SetMcuToWfiState(pMsg);
         }
     }
 }
