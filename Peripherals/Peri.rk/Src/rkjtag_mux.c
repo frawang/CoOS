@@ -55,17 +55,13 @@ static void SetMcuToWfiState(MboxMsg *pMsg)
     pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
     pBuf_tx->Status = SCPI_SUCCESS;
 
+    NVIC_ST_CTRL = 0;
     IRQ_DISABLE_SAVE();
 
     Mbox_CmdDone(pMsg);
-    NVIC_ST_CTRL = 0;
-
-    __asm volatile
-    (
-        //"b .\n"
-        "wfi    \n"
-    );
     
+    __asm volatile ("wfi");
+
     NVIC_ST_CTRL = systick_ctl;
     IRQ_ENABLE_RESTORE ();
 }
