@@ -97,6 +97,11 @@ typedef enum scpi_std_cmd {
 	SCPI_CMD_COUNT
 } Scpi_StdCmd;
 
+typedef enum scpi_thermal_cmd {
+	SCPI_THERMAL_GET_TSADC_DATA,
+	SCPI_THERMAL_COUNT
+}scpi_tsadc_cmd_t;
+
 #define CMD_ID_SHIFT		0
 #define CMD_ID_MASK		0xff
 #define CMD_SENDER_ID_SHIFT	8

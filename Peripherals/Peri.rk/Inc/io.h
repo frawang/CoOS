@@ -45,6 +45,8 @@
  extern "C" {
 #endif
 
+#include "types.h"
+
 #define MCU_BASE	0x40000000
 
 /*!< i2c 				*/
@@ -116,6 +118,7 @@
 #define     UART_GPS_BASE_ADDR                0x401B0000
 #define     UART_EXT_BASE_ADDR                0x401C0000
 #define     DMA_PREI_BASE_ADDR                0x40250000
+#define     TSADC_BASE_ADDR                   0x40280000
 #define     AXI_GPV_BASE_ADDR                 0x40300000
 #define     NANDC_BASE_ADDR                   0x40410000
 #define     USB_HOST_BASE_ADDR                0x40500000
@@ -137,8 +140,17 @@
 #define     SRAM_BASE_ADDR                    0x408C0000
 #define     SERVICE_BUS_ADDR                  0x40AC0000
 #define     VOP_BASE_ADDR                     0x40930000
-#define     SDRAM_ADDR              0x00000000
+#define     SDRAM_ADDR                        0x00000000
 
+
+/*!< The macrs for register */
+#define readb(c)	({u8 __v = (*(vu8 *) (c)); __v;})
+#define readw(c)	({u16 __v = (*(vu16 *) (c)); __v;})
+#define readl(c)	({u32 __v = (*(vu32 *) (c)); __v;})
+
+#define writeb(v, c)	((*(vu8 *) (c)) = (v))
+#define writew(v, c)	((*(vu16 *) (c)) = (v))
+#define writel(v, c)	((*(vu32 *) (c)) = (v))
 
 #ifdef __cplusplus
 }

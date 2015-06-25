@@ -40,11 +40,25 @@
 #ifndef __TASK_H
 #define __TASK_H
 
+#include "AppConfig.h"
+
 #define TASK_STK_SIZE		128	 				/*!< Define stack size.				*/
+
+/*!< Defines the priority that be assigned to tasks.*/
 #define	DDR_SET_PRI 		2		   			/*!< Priority of 'ddr' task.		*/
 #define JTAG_MUX_PRI        3
+
+#ifdef CFG_TSADC
+#define TASK_TSADC_PRIO		4
+#endif
+
+/* !< Invoked by other files */
 void Create_DdrTask(void);
 void Create_JtagMux_Task(void);
 void creat_suspend_task(void);
+
+#ifdef CFG_TSADC
+void create_tsadc_task(void);
+#endif
 
 #endif

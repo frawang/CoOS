@@ -32,6 +32,9 @@ void task_init(void *pdata)
 	Create_DdrTask();
 	Create_JtagMux_Task();
 	creat_suspend_task();
+#ifdef CFG_TSADC
+    create_tsadc_task();
+#endif
 	CoExitTask();	 /*!< Delete 'task_init' task. 	*/
 }
 
