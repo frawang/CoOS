@@ -84,8 +84,8 @@
     <File name="Peripherals/RK/Inc/cru.h" path="../Peripherals/Peri.rk/Inc/cru.h" type="1"/>
     <File name="CoOS/kernel/OsServiceReq.h" path="../CoOS/kernel/OsServiceReq.h" type="1"/>
     <File name="CoOS/Document/readme.txt" path="../CoOS/Document/readme.txt" type="1"/>
-    <File name="App/Inc/task.h" path="../App/Inc/task.h" type="1"/>
     <File name="Peripherals/RK/Src" path="" type="2"/>
+    <File name="App/Inc/task.h" path="../App/Inc/task.h" type="1"/>
     <File name="CoOS/kernel/OsTask.h" path="../CoOS/kernel/OsTask.h" type="1"/>
     <File name="Peripherals/RK/Inc/ddr_rk3368.h" path="../Peripherals/Peri.rk/Inc/ddr_rk3368.h" type="1"/>
     <File name="CoOS/portable/GCC" path="" type="2"/>
@@ -100,8 +100,8 @@
     <File name="Peripherals/RK/Src/irq.c" path="../Peripherals/Peri.rk/Src/irq.c" type="1"/>
     <File name="App/Inc" path="" type="2"/>
     <File name="CoOS/kernel/OsKernelHeap.h" path="../CoOS/kernel/OsKernelHeap.h" type="1"/>
-    <File name="CoOS/kernel/OsFlag.h" path="../CoOS/kernel/OsFlag.h" type="1"/>
     <File name="Peripherals/Core/Inc/core_cm3.h" path="../Peripherals/Core/Inc/core_cm3.h" type="1"/>
+    <File name="CoOS/kernel/OsFlag.h" path="../CoOS/kernel/OsFlag.h" type="1"/>
     <File name="CoOS/kernel/OsTime.h" path="../CoOS/kernel/OsTime.h" type="1"/>
     <File name="CoOS/kernel" path="" type="2"/>
     <File name="Peripherals/RK/Inc" path="" type="2"/>
@@ -111,10 +111,10 @@
     <File name="CoOS/portable/OsArch.h" path="../CoOS/portable/OsArch.h" type="1"/>
     <File name="CoOS/kernel/OsCore.h" path="../CoOS/kernel/OsCore.h" type="1"/>
     <File name="CoOS/kernel/OsMutex.h" path="../CoOS/kernel/OsMutex.h" type="1"/>
-    <File name="CoOS/kernel/OsTimer.h" path="../CoOS/kernel/OsTimer.h" type="1"/>
     <File name="CoOS/kernel/sem.c" path="../CoOS/kernel/sem.c" type="1"/>
-    <File name="Peripherals/Common/Inc/sizes.h" path="../Peripherals/Common/Inc/sizes.h" type="1"/>
+    <File name="CoOS/kernel/OsTimer.h" path="../CoOS/kernel/OsTimer.h" type="1"/>
     <File name="CoOS/kernel/OsQueue.h" path="../CoOS/kernel/OsQueue.h" type="1"/>
+    <File name="Peripherals/Common/Inc/sizes.h" path="../Peripherals/Common/Inc/sizes.h" type="1"/>
     <File name="CoOS/kernel/CoOS.h" path="../CoOS/kernel/CoOS.h" type="1"/>
     <File name="App/Inc/AppConfig.h" path="../App/Inc/AppConfig.h" type="1"/>
     <File name="Peripherals/Cox" path="" type="2"/>
@@ -138,18 +138,18 @@
     <File name="CoOS/kernel/mbox.c" path="../CoOS/kernel/mbox.c" type="1"/>
     <File name="CoOS/kernel/core.c" path="../CoOS/kernel/core.c" type="1"/>
     <File name="CoOS" path="" type="2"/>
-    <File name="Peripherals/RK/Src/sram.c" path="../Peripherals/Peri.rk/Src/sram.c" type="1"/>
-    <File name="Peripherals/RK" path="" type="2"/>
     <File name="Peripherals/RK/Src/uart.c" path="../Peripherals/Peri.rk/Src/uart.c" type="1"/>
+    <File name="Peripherals/RK" path="" type="2"/>
+    <File name="Peripherals/RK/Src/sram.c" path="../Peripherals/Peri.rk/Src/sram.c" type="1"/>
     <File name="Peripherals/Common/Stdio" path="" type="2"/>
     <File name="CoOS/kernel/kernelHeap.c" path="../CoOS/kernel/kernelHeap.c" type="1"/>
     <File name="CoOS/kernel/serviceReq.c" path="../CoOS/kernel/serviceReq.c" type="1"/>
     <File name="CoOS/portable" path="" type="2"/>
     <File name="Peripherals/Core/Inc" path="" type="2"/>
     <File name="CoOS/kernel/OsMM.h" path="../CoOS/kernel/OsMM.h" type="1"/>
+    <File name="CoOS/kernel/hook.c" path="../CoOS/kernel/hook.c" type="1"/>
     <File name="Peripherals/RK/Inc/uart.h" path="../Peripherals/Peri.rk/Inc/uart.h" type="1"/>
     <File name="App/ddr.c" path="../App/ddr.c" type="1"/>
-    <File name="CoOS/kernel/hook.c" path="../CoOS/kernel/hook.c" type="1"/>
     <File name="Peripherals/RK/Src/cru.c" path="../Peripherals/Peri.rk/Src/cru.c" type="1"/>
     <File name="Peripherals/Boot" path="" type="2"/>
     <File name="Peripherals/RK/Src/ddr_memSet.s" path="../Peripherals/Peri.rk/Src/ddr_memSet.s" type="1"/>
