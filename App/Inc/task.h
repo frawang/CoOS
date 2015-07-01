@@ -45,12 +45,15 @@
 #define TASK_STK_SIZE		128	 				/*!< Define stack size.				*/
 
 /*!< Defines the priority that be assigned to tasks.*/
-#define	DDR_SET_PRI 		2		   			/*!< Priority of 'ddr' task.		*/
-#define JTAG_MUX_PRI        3
+#define TASK_INIT_PRI       0
+#define DDR_SET_PRI         1                   /*!< Priority of 'ddr' task.        */
+#define JTAG_MUX_PRI        2
 
 #ifdef CFG_TSADC
-#define TASK_TSADC_PRIO		4
+#define TASK_TSADC_PRI      3
 #endif
+
+#define TASK_SUSPEND_PRI    6       /* should be the lowest one */
 
 /* !< Invoked by other files */
 void Create_DdrTask(void);

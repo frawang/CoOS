@@ -134,7 +134,7 @@ void task_tsadc(void *pdata)
 void create_tsadc_task(void)
 {
     /* Create Tasks */
-    CoCreateTask(task_tsadc, (void *)0, TASK_TSADC_PRIO, &task_tsadc_stk[TASK_STK_SIZE-1], TASK_STK_SIZE);
+    CoCreateTask(task_tsadc, (void *)0, TASK_TSADC_PRI, &task_tsadc_stk[TASK_STK_SIZE-1], TASK_STK_SIZE);
 }
 
 #endif
