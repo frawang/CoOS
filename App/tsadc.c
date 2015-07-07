@@ -28,7 +28,7 @@
 
 //#define debug_writel(v, c) {writel(0, c); writel(v, c);}
 
-OS_STK task_tsadc_stk[TASK_STK_SIZE];       /*!< Stack of 'task_tsadc' task. */
+OS_STK task_tsadc_stk[TASK_STK_SIZE*2];       /*!< Stack of 'task_tsadc' task. */
 static int g_adc_data = 122;
 
 static int tsadc_get_temp_code(void)
@@ -95,8 +95,6 @@ void tsadc_cmd_handle(MboxMsg *pmsg)
                 int tsadc_data;
             } *pbuf_tx;
 
-            CoEnterISR();
-
             pbuf_rx = (volatile struct __packed1 *)pmsg->A2B_Buf;
             pbuf_tx = (volatile struct __packed2 *)pmsg->B2A_Buf;
 
@@ -105,8 +103,6 @@ void tsadc_cmd_handle(MboxMsg *pmsg)
             pbuf_tx->tsadc_data = tsadc_get_temp_code();    
             Mbox_CmdDone(pmsg);
 
-            CoExitISR();
-            //printf("[MCU]: g_i=%d\n\r", g_i);
             break;
         }
 
