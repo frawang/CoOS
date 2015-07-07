@@ -52,18 +52,11 @@
  * @details    This function is system IDLE task code.	 
  *******************************************************************************
  */
-__sramfunc void CoIdleTask(void* pdata)
+void CoIdleTask(void* pdata)
 {
     /* Add your codes here */
-    for(; ;) 
-    {
-        /* Add your codes here */
-        #if 0
-        __asm volatile
-        (
-            "wfi    \n"
-        );
-        #endif
+    for(; ;) {
+        __asm volatile ("wfi");
     }
 }
 
