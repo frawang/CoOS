@@ -1,0 +1,20 @@
+-------------------------------------------------------------------------------
+V2.07  20150707  Fixed tsadc bug and added wfi also to idle task
+V2.06  20150701  Modified tsadc function priority
+V2.05  20150626  Fixed suspend&resume issue and added tsadc function
+V2.04  20150526  Add 3328 supported
+V2.03  20150508  Set idle task to sram
+V2.03  20150507  For ddr3 dll bypass cl 10 cwl 7
+V2.02  20150430  Addr 0 used to store mcu code version
+V2.02  20150425  Support mcu coos code at dram and DCF code at sram
+V2.01  20150422  Fix idle iommu result in mmu bus error
+V2.01  20150413  Fix jtag iomux and reset stack size
+V2.00  20150403
+-------------------------------------------------------------------------------
+V1.05  20150402  Mailbox used global msg
+V1.04  20150401  Training used cs 0
+V1.03
+V1.02            Modified "disable stall" condition
+V1.01            Set (mmu_status == 0)
+V1.00            Initial version
+-------------------------------------------------------------------------------
