@@ -124,7 +124,7 @@ __sramfunc static void ddr_delayus(uint32 us)
         asm volatile (".align 4; 1: subs %0, %0, #1; bne 1b;":"+r" (i));
         return;
     }
-    
+    timer_ctrl = *(volatile uint32 *)0xE000E010;/*read and clear count flag*/
     start_value = *(uint32*)0xE000E018;
     timer_value = (uint32 *)0xE000E018;
     us -= 2;
@@ -132,8 +132,8 @@ __sramfunc static void ddr_delayus(uint32 us)
 
     if(delay_loop > start_value)
     {
-        timer_ctrl = *(volatile uint32 *)0xE000E010;/*read and clear count flag*/
-        dsb();
+        //timer_ctrl = *(volatile uint32 *)0xE000E010;/*read and clear count flag*/
+        //dsb();
         end_value = *(uint32*)0xE000E014 - (delay_loop - start_value)+1;
         while(((*(volatile uint32*)0xE000E010) & (0x1<<16)) == 0);/*wait timer count to 0*/
         do{
@@ -144,7 +144,7 @@ __sramfunc static void ddr_delayus(uint32 us)
     else
     {
         end_value = start_value - delay_loop;
-        while(*timer_value > end_value);
+        while((*timer_value > end_value) && (*timer_value < start_value));
     }
 }
 
@@ -1821,7 +1821,7 @@ int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type)
 		ddr_reg.ddr_speed_bin = dram_speed_bin;
 
 	ddr_freq = 0;
-	ddr_reg.ddr_sr_idle = 0;
+	ddr_reg.ddr_sr_idle = pDDR_Reg->MCFG1 & 0xff;
     ddr_reg.ddr_dll_status = DDR3_DLL_DISABLE;
 
 	ddr_reg.mem_type = ((pPMUGRF_Reg->PMUGRF_OS_REG[2] >>13)&0x7);
