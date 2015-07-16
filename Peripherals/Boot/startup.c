@@ -60,6 +60,8 @@ extern unsigned long __sram_data_start, __ssram_data, __esram_data;
 
 /*----------Function prototypes-----------------------------------------------*/  
 extern int main(void);           /*!< The entry point for the application.    */
+extern void dump_regs_info(U32 *stack); /* Dump stack information function */
+
 void Default_Reset_Handler(void);   /*!< Default reset handler                */
 static void Default_Handler(void);  /*!< Default exception handler            */
 
@@ -190,11 +192,21 @@ void Default_Reset_Handler(void)
   */
 static void Default_Handler(void) 
 {
-	register U32 exc_return, xPSR;
-	
-	__asm volatile ("MOV %0, lr" : "=r" (exc_return));
-	__asm volatile ("MRS %0, xpsr" : "=r" (xPSR));
-    printf("\n[MCU]:Exception, xPSR=0x%02x, LR=0x%02x\n", xPSR, exc_return);
+    volatile register U32 stack;
+
+    /* First, acquire the stack addr of the exception scene */
+    __asm volatile
+    (
+        "TST    LR, #4          \n"
+        "ITE    EQ              \n"
+        "MRSEQ  R0, MSP         \n"
+        "MRSNE  R0, PSP         \n"
+        "MOV    %0, R0          \n"
+        : "=r" (stack)
+    );
+
+    /* Second, dump stack regs information */
+    dump_regs_info((U32 *)stack);
 
     /* Go into an infinite loop. */
     while (1) ;

@@ -20,13 +20,13 @@ void task_init(void *pdata)
 {
 	/* Peripherals initialize */
 	if (Uart_Init() != E_OK)
-		printf("[MCU]:Init uart failed\n");
+		printf("[MCU]Init uart failed\n\r");
 
 	if (Cru_Init() != E_OK)
-		printf("[MCU]:Init cru failed\n");
+		printf("[MCU]Init cru failed\n\r");
 
 	if (Mbox_Init() != E_OK)
-		printf("[MCU]:Init mailbox failed\n");
+		printf("[MCU]Init mailbox failed\n\r");
 
 	/* Applications initialize */
 	Create_DdrTask();
@@ -66,7 +66,7 @@ int main(void)
 //	uart_printf("MCU: Start MCU...\n\r");
 	CoStartOS();
     
-	printf("[MCU]:CoOS start failed\n");
+	printf("\n\r**** MCU CoOS Start Failed ****\n\r");
     while(1);
 
     return 0;

@@ -53,7 +53,7 @@
 #define TASK_TSADC_PRI      3
 #endif
 
-#define TASK_SUSPEND_PRI    6       /* should be the lowest one */
+#define TASK_SUSPEND_PRI    (CFG_MAX_USER_TASKS - 1) /* should be the lowest one */
 
 /* !< Invoked by other files */
 void Create_DdrTask(void);

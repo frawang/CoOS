@@ -156,6 +156,7 @@ void Mbox_IRQHandler(void)
     for(id = 0; id < NUM_CHANS; id++) {
     	//MboxMsg msg;
     	Scpi_ClientId sid;
+    	Scpi_SysCmd cmd;
     	if (!(pending & (1 << id)))
     		continue;
 
@@ -169,6 +170,7 @@ void Mbox_IRQHandler(void)
     	g_msg[id].Id = id;
 
     	sid = CMD_SENDER_ID(g_msg[id].Cmd);
+    	cmd = CMD_ID(g_msg[id].Cmd);
 //    	printf("[%d]MCU: Chan[%d]: A2B message, cmd 0x%08x\n\r",(U32)OSTickCnt, id, g_msg[id].Cmd);
     	if (sid > SCPI_MAX) {
     		* ((U32 *)g_msg[id].B2A_Buf) = SCPI_ERR_SUPPORT;
@@ -178,8 +180,9 @@ void Mbox_IRQHandler(void)
     		Mbox_HandleSysCmd(&g_msg[id]);
     	} else {
     		if (isr_PostMail(mboxs[sid], &g_msg[id]) != E_OK) {
-    			* ((U32 *)g_msg[id].B2A_Buf) = SCPI_ERR_SUPPORT;
-    			Mbox_CmdDone(&g_msg[id]);
+                printf("[MCU]MBOX PostMail Failed, SID=%d, CMD=%d\n\r", sid, cmd);
+                * ((U32 *)g_msg[id].B2A_Buf) = SCPI_ERR_SUPPORT;
+                Mbox_CmdDone(&g_msg[id]);
     		}
     	}
 	

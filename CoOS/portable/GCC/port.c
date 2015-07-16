@@ -220,6 +220,35 @@ void SwitchContext(void)
  
 }
 
+void dump_regs_info(U32 *stack)
+{
+    volatile register U32 *sp = (volatile U32 *)stack;
+
+    printf("\n\r**** MCU Exception ****\n\r");
+
+    printf("SP    = 0x%08x\n\r",  sp);
+    printf("R0    = 0x%08x\n\r",  sp[0]);
+    printf("R1    = 0x%08x\n\r",  sp[1]);
+    printf("R2    = 0x%08x\n\r",  sp[2]);
+    printf("R3    = 0x%08x\n\r",  sp[3]);
+    printf("R12   = 0x%08x\n\r",  sp[4]);
+    printf("LR    = 0x%08x\n\r",  sp[5]);
+    printf("PC    = 0x%08x\n\r",  sp[6]);
+    printf("PSR   = 0x%08x\n\r",  sp[7]);
+
+    printf("SHCSR = 0x%08x\n\r", (*((volatile U32 *)(0xE000ED24))));
+//    printf("CFSR  = 0x%08x\n\r", (*((volatile U32 *)(0xE000ED28))));
+    printf("MFSR  = 0x%08x\n\r", (*((volatile U32 *)(0xE000ED28))) & 0x000000FF);
+    printf("BFSR  = 0x%08x\n\r", (*((volatile U32 *)(0xE000ED29))) & 0x000000FF);
+    printf("UFSR  = 0x%08x\n\r", (*((volatile U32 *)(0xE000ED2A))) & 0x00000FFF);
+    printf("HFSR  = 0x%08x\n\r", (*((volatile U32 *)(0xE000ED2C))));
+    printf("DFSR  = 0x%08x\n\r", (*((volatile U32 *)(0xE000ED30))) & 0x000000FF);
+    printf("MMAR  = 0x%08x\n\r", (*((volatile U32 *)(0xE000ED34))));
+    printf("BFAR  = 0x%08x\n\r", (*((volatile U32 *)(0xE000ED38))));
+    printf("AFAR  = 0x%08x\n\r", (*((volatile U32 *)(0xE000ED3C))));
+
+    printf("\n\r");
+}
 
 
 /**

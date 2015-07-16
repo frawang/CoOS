@@ -74,6 +74,9 @@ void CoIdleTask(void* pdata)
  */
 void CoStkOverflowHook(OS_TID taskID)
 {
+    printf("\n\r**** MCU Task Stack Overflow ****\n\r");
+    printf("TASKID = %u\n\r", taskID);
+
     /* Process stack overflow  here */
     for(; ;) 
     {

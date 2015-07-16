@@ -37,6 +37,8 @@ void task_jtagmux(void *pdata)
         /*delay 3 second*/
         CoTimeDelay(0,0,3,0);
     }
+	
+    CoExitTask();
 }
 
 void Create_JtagMux_Task(void)
@@ -74,16 +76,19 @@ void task_suspend(void *pdata)
     for (; ;) {
         pMsg = CoPendMail(mboxs[SCPI_CL_SYS], 0, &err);
         //CoPendMail(suspend_mail, 0, &err);
-        if (err == E_OK)
-        {
+        if (err == E_OK) {
             SetMcuToWfiState(pMsg);
+        } else {
+            printf("[MCU]Suspend PendMail Failed\n\r");
         }
     }
+	
+    CoExitTask();
 }
 
 void creat_suspend_task(void)
 {
 //	CoCreateTask(task_jtagmux, (void *)0, JTAG_MUX_PRI, &task_jtagmux_stk[TASK_STK_SIZE-1], TASK_STK_SIZE);
 
-	CoCreateTask(task_suspend, (void *)0, 4, &task_suspend_stk[TASK_STK_SIZE-1], TASK_STK_SIZE);
+	CoCreateTask(task_suspend, (void *)0, TASK_SUSPEND_PRI, &task_suspend_stk[TASK_STK_SIZE-1], TASK_STK_SIZE);
 }

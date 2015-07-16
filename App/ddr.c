@@ -183,8 +183,10 @@ void task_ddr(void *pdata)
 		if (err == E_OK)
 			Ddr_HandleCmd(pMsg);
 		else
-			printf("MCU: CoPendMail...        [Fail]\n\r");
+			printf("[MCU]DDR PendMail Failed\n\r");
 	}
+
+    CoExitTask();
 }
 
 void Create_DdrTask(void)

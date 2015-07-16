@@ -122,9 +122,11 @@ void task_tsadc(void *pdata)
         if (err == E_OK) {
             tsadc_cmd_handle(pMsg);
         } else {
-            //printf("MCU: CoPendMail...        [Fail]\n\r");
+            printf("[MCU]TSADC PendMail Failed\n\r");
         }
     }
+
+    CoExitTask();
 }
 
 void create_tsadc_task(void)
