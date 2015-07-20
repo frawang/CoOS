@@ -46,6 +46,8 @@
 /*---------------------------- Variable Define -------------------------------*/
 P_OSTCB DlyList   = Co_NULL;               /*!< Header pointer to the DELAY list.*/
 
+const U32 loop_per_usec  = CFG_CPU_FREQ / 1000000;
+const U32 max_usec_delay = 1000000 / CFG_SYSTICK_FREQ;
 
 /**
  *******************************************************************************
@@ -339,34 +341,29 @@ StatusType CoUdelay(U32 usec)
 {
 	U32 i;
 	U32 start, end, loop;
-	U32 loop_per_usec = CFG_CPU_FREQ / 1000000;
-	U32 max_usec = 1000000 / CFG_SYSTICK_FREQ;
+	volatile U32 timer_ctl;
 
-	if (usec > max_usec)
+	if (usec > max_usec_delay) {
 		return E_INVALID_PARAMETER;
+	}
 
-	if (usec == 1) {
+	if (1 == usec) {
 		i = 1;
 		asm volatile (".align 4; 1: subs %0, %0, #1; bne 1b;":"+r" (i));
 		return E_OK;
 	}
 
+	timer_ctl = NVIC_ST_CTRL; /* read for clearing counter flag */
 	start = NVIC_ST_CURRENT;
-	end = NVIC_ST_CURRENT;
-
-	usec -= 2;
-
-	loop = loop_per_usec * usec;
+	loop = loop_per_usec * (usec - 2); /* have already used 2 usec roughly. */
 
 	if (loop > start) {
 		end = NVIC_ST_RELOAD - (loop - start) + 1;
-		do {
-			if ((NVIC_ST_CURRENT > start) && (NVIC_ST_CURRENT < end))
-				break;
-		} while(1);
+		while (0 == (NVIC_ST_CTRL & (0x1<<16))) ; /* once wait for timer count to 0 */
+		while (NVIC_ST_CURRENT > end) ; /* wait until timeout */
 	} else {
 		end = start - loop;
-		while (NVIC_ST_CURRENT > end);
+		while ((NVIC_ST_CURRENT > end) && (NVIC_ST_CURRENT < start)) ; /* wait until timeout */
 	}
 
 	return E_OK;
