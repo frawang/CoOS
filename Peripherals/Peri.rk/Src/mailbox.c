@@ -85,11 +85,12 @@ static void Mbox_HandleSysCmd(MboxMsg *pMsg)
 			U32 Status;
 			U32 Ver;
 		} *pBuf;
-		U32 freq;
+//		U32 freq;
 
 		pBuf = (volatile struct __packed *)pMsg->B2A_Buf;
 		pBuf->Status = SCPI_SUCCESS;
-		freq = Cru_SetMcuFreq(CFG_CPU_FREQ);
+
+		Cru_SetMcuFreq(CFG_CPU_FREQ);
 //		printf("MCU: Retry to set %uMhz, real %uMhz\n\r", CFG_CPU_FREQ / 1000000, freq / 1000000);
 
 		Mbox_CmdDone(pMsg);

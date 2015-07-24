@@ -401,6 +401,7 @@ __sramfunc static uint32  ddr_setSys_pll(uint32 nMHz, uint32 set)
 	return ret;
 }
 
+#if 0
 static uint32 ddr_setPHY_pll(uint32 nMHz)
 {
     uint32 ret;
@@ -427,7 +428,7 @@ static uint32 ddr_setPHY_pll(uint32 nMHz)
 
     return ret;
 }
-
+#endif
 
 static uint32 ddr_get_parameter(uint32 nMHz)
 {
@@ -1545,8 +1546,8 @@ sramlocalfunc static void idle_port(void)
     //pCRU_Reg->CRU_CLKSEL_CON[20] = ((pCRU_Reg->CRU_CLKSEL_CON[20] & 0xff)*2+1) | (0xff<<16);
 #endif
 
-	rk3368_ddr_memCpy(&(clk_gate[0]),&(pCRU_Reg->CRU_CLKGATE_CON[0]),CLK_GATE_NUM);
-    rk3368_ddr_memSet(&(pCRU_Reg->CRU_CLKGATE_CON[0]),CLK_GATE_NUM,0xffff0000);
+	rk3368_ddr_memCpy(&(clk_gate[0]), (uint32 *)&(pCRU_Reg->CRU_CLKGATE_CON[0]),CLK_GATE_NUM);
+    rk3368_ddr_memSet((uint32 *)&(pCRU_Reg->CRU_CLKGATE_CON[0]),CLK_GATE_NUM,0xffff0000);
     idle_req = idle_req_msch_en | idle_req_cci400;
     idle_stus = idle_msch;// | idle_core;
     pPMU_Reg->PMU_PMU_BUS_IDLE_REQ = idle_req;
@@ -1566,7 +1567,7 @@ sramlocalfunc static void deidle_port(void)
     pPMU_Reg->PMU_PMU_BUS_IDLE_REQ &= ~idle_req;
 	dsb();
 	while ((pPMU_Reg->PMU_PMU_BUS_IDLE_ST & idle_stus) != 0);
-	rk3368_ddr_memCpy_mask(&(pCRU_Reg->CRU_CLKGATE_CON[0]),&(clk_gate[0]),CLK_GATE_NUM);
+	rk3368_ddr_memCpy_mask((uint32 *)&(pCRU_Reg->CRU_CLKGATE_CON[0]),&(clk_gate[0]),CLK_GATE_NUM);
 #ifdef SYNC_WITH_LCDC_FRAME_INTR
     if(id_mipi_dis == Ddr_FALSE)
         pCRU_Reg->CRU_CLKSEL_CON[20] = ((((pCRU_Reg->CRU_CLKSEL_CON[20] & 0xff)+1)/2)-1) | (0xff<<16);
@@ -1693,7 +1694,7 @@ static uint32 save_sp;
 uint32 rk3368_ddr_change_freq(uint32 nMHz)
 {
     uint32 ret;
-    uint32 freq_slew;
+//    uint32 freq_slew;
 
 	if((pDDR_Reg->TDPD != 1) && (nMHz > 600))
 	{
@@ -1806,7 +1807,7 @@ static uint32 ddr_get_cap(uint32 cs_cap)
 int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type)
 {
 	uint32 die = 1;
-	uint32 nMHz; 
+//	uint32 nMHz; 
 
 	//ddr_print("RK3368 version 1.00 20141111\n");
 	p_ddr_reg = &ddr_reg;
@@ -1858,7 +1859,8 @@ int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type)
     {
          freq = ddr_get_dram_freq();
     }
-    nMHz = rk3368_ddr_change_freq(freq);
+
+	rk3368_ddr_change_freq(freq);
 //    printf("  freq:%dMHz\n\r",nMHz);
 	/*ddr_print("init success!!! freq=%luMHz\n",
 		  nMHz);

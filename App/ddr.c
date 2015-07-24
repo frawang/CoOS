@@ -8,7 +8,7 @@ U32 gDdr_freq_MHz = 0;
 void Ddr_HandleCmd(MboxMsg *pMsg)
 {
 	Scpi_DdrCmd cmd = CMD_ID(pMsg->Cmd);
-    U32 i;
+//    U32 i;
 
 	switch (cmd) {
 	case SCPI_DDR_INIT: {
@@ -55,30 +55,6 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 		pBuf_tx->Status = SCPI_SUCCESS;
 		Mbox_CmdDone(pMsg);
 		break;
-	}
-	
-	case SCPI_DDR_ROUND_RATE: {
-		volatile struct __packed1 {
-			U32 clk_rate;
-		} *pBuf_rx;
-
-		volatile struct __packed2 {
-			U32 Status;
-			U32 round_rate;
-		} *pBuf_tx;
-		U32 freq;
-		U32 round_rate;
-
-		pBuf_rx = (volatile struct __packed1 *)pMsg->A2B_Buf;
-		pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
-		freq = pBuf_rx->clk_rate;
-		
-		//to be defined
-		//round_rate = rk3368_ddr_round_rate(freq);
-		pBuf_tx->Status = SCPI_SUCCESS;
-		pBuf_tx->round_rate = round_rate;
-		Mbox_CmdDone(pMsg);
-		break;		
 	}
 
 	case SCPI_DDR_AUTO_SELF_REFRESH: {
@@ -131,16 +107,11 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 	}	
 
 	case SCPI_DDR_GET_FREQ: {
-		volatile struct __packed1 {
-			U32 Status;
-		} *pBuf_rx;
-
 		volatile struct __packed2 {
 			U32 Status;
 			U32 clk_rate;
 		} *pBuf_tx;
 
-		pBuf_rx = (volatile struct __packed1 *)pMsg->A2B_Buf;
 		pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
 		pBuf_tx->Status = SCPI_SUCCESS;
 		pBuf_tx->clk_rate = ddr_get_dram_freq();

@@ -92,6 +92,8 @@ U32 Cru_SetMcuFreq(U32 freq)
 	freq_real = freq_pll / ((pCru->Clksel_Con[12] & 0x1f) + 1);
 	return freq_real;
 }
+
+#if 0
 /*MCU freq and release reset singel are set by uboot */
 int Cru_Init(void)
 {
@@ -101,3 +103,4 @@ int Cru_Init(void)
 
 	return E_OK;
 }
+#endif

@@ -6,24 +6,12 @@
 /*---------------------------------- Variable Define -------------------------*/
 OS_STK   task_init_stk[TASK_STK_SIZE];	 	/*!< Stack of 'task_init' task.	*/
 
-/* This function should only be called before task_init exit. */
-static void uart_printf (char *ptr)
-{
-#if 0
-	while (*ptr != 0){
-		Uart_SendChar(*ptr++);
-	}
-#endif
-}
 
 void task_init(void *pdata)
 {
 	/* Peripherals initialize */
 	if (Uart_Init() != E_OK)
 		printf("[MCU]Init uart failed\n\r");
-
-	if (Cru_Init() != E_OK)
-		printf("[MCU]Init cru failed\n\r");
 
 	if (Mbox_Init() != E_OK)
 		printf("[MCU]Init mailbox failed\n\r");

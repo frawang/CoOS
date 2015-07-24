@@ -38,6 +38,7 @@
 
 /*---------------------------- Include ---------------------------------------*/
 #include "coocox.h"
+#include <stdio.h>
 
 
 //******************************************************************************
@@ -226,7 +227,7 @@ void dump_regs_info(U32 *stack)
 
     printf("\n\r**** MCU Exception ****\n\r");
 
-    printf("SP    = 0x%08x\n\r",  sp);
+    printf("SP    = %p\n\r",      sp);
     printf("R0    = 0x%08x\n\r",  sp[0]);
     printf("R1    = 0x%08x\n\r",  sp[1]);
     printf("R2    = 0x%08x\n\r",  sp[2]);

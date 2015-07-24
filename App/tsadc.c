@@ -86,16 +86,11 @@ void tsadc_cmd_handle(MboxMsg *pmsg)
 
     switch (cmd) {
         case SCPI_THERMAL_GET_TSADC_DATA: {    
-            volatile struct __packed1 {
-                u32 status;
-            } *pbuf_rx;
-
             volatile struct __packed2 {
                 u32 status;
                 int tsadc_data;
             } *pbuf_tx;
 
-            pbuf_rx = (volatile struct __packed1 *)pmsg->A2B_Buf;
             pbuf_tx = (volatile struct __packed2 *)pmsg->B2A_Buf;
 
             //printf("MCU [%s][%d]: voltage=%d, temp_adjust=%d\n\r", __FUNCTION__, __LINE__, pbuf_rx->voltage, pbuf_rx->temp_adjust);
