@@ -22,14 +22,13 @@
 
 #define TSADCV3_DATA_MASK           0x3ff
 #define TSADC_CLK_GATE_DELAY_TIME   50      /* usec */
-#define TSADC_CLK_CYCLE_TIME        30      /* usec */
-//#define TSADC_USER_MODE_DELAY_TIME  60     /* usec */
-
+#define TSADC_CLK_CYCLE_TIME        32      /* usec */
 
 //#define debug_writel(v, c) {writel(0, c); writel(v, c);}
 
-OS_STK task_tsadc_stk[TASK_STK_SIZE*2];       /*!< Stack of 'task_tsadc' task. */
-static int g_adc_data = 122;
+OS_STK task_tsadc_stk[TASK_STK_SIZE*2];      /*!< Stack of 'task_tsadc' task. */
+static int g_adc_data = 122;                 /* default 0 DC */
+static u32 g_clk_cycle = TSADC_CLK_CYCLE_TIME;
 
 static int tsadc_get_temp_code(void)
 {
@@ -48,26 +47,31 @@ static int tsadc_get_temp_code(void)
 
     /* get temperature from tsadc */
     /* power up, channel 0*/
-    writel(0x208, (TSADC_BASE_ADDR + TSADCV2_USER_CON));
-    /*clear eoc inter*/
-    writel(0x100, (TSADC_BASE_ADDR + TSADCV2_INT_PD));
+    writel(0x18, (TSADC_BASE_ADDR + TSADCV2_USER_CON));
+    dsb();
+    CoUdelay(g_clk_cycle * 2);
+
+    writel(0x38, (TSADC_BASE_ADDR + TSADCV2_USER_CON));
+    dsb();
+    CoUdelay(g_clk_cycle * 12);
 
     for (i=0; i<50; i++) { /* try 50 times */
-        CoUdelay(TSADC_CLK_CYCLE_TIME);
-
         adc_pd = readl(TSADC_BASE_ADDR + TSADCV2_INT_PD);
         if ((adc_pd & 0x100) == 0x100) {
-//            CoUdelay(TSADC_USER_MODE_DELAY_TIME);
+            CoUdelay(1);
             /*read adc data*/
             g_adc_data = readl(TSADC_BASE_ADDR + TSADCV2_DATA(0));
 
             /*clear eoc inter*/
             writel(0x100, (TSADC_BASE_ADDR + TSADCV2_INT_PD));
+            dsb();
             break;
         }
+        CoUdelay(g_clk_cycle);
     }
+
     /*power down, channel 0*/
-    writel(0x200, (TSADC_BASE_ADDR + TSADCV2_USER_CON));
+    writel(0x0, (TSADC_BASE_ADDR + TSADCV2_USER_CON));
     
     /* recover A53 PLL to normal mode */
     writel(0x03000100, 0x4076000c);
@@ -86,18 +90,37 @@ void tsadc_cmd_handle(MboxMsg *pmsg)
 
     switch (cmd) {
         case SCPI_THERMAL_GET_TSADC_DATA: {    
-            volatile struct __packed2 {
+            volatile struct __packed_tx1 {
                 u32 status;
                 int tsadc_data;
-            } *pbuf_tx;
+            } *pbuf_tx1;
 
-            pbuf_tx = (volatile struct __packed2 *)pmsg->B2A_Buf;
-
-            //printf("MCU [%s][%d]: voltage=%d, temp_adjust=%d\n\r", __FUNCTION__, __LINE__, pbuf_rx->voltage, pbuf_rx->temp_adjust);
-            pbuf_tx->status = SCPI_SUCCESS;
-            pbuf_tx->tsadc_data = tsadc_get_temp_code();    
+            pbuf_tx1 = (volatile struct __packed_tx1 *)pmsg->B2A_Buf;
+//            printf("MCU [%s][%d]: voltage=%d, temp_adjust=%d\n\r", __FUNCTION__, __LINE__, pbuf_rx->voltage, pbuf_rx->temp_adjust);
+            pbuf_tx1->status = SCPI_SUCCESS;
+            pbuf_tx1->tsadc_data = tsadc_get_temp_code();    
             Mbox_CmdDone(pmsg);
 
+            break;
+        }
+
+        case SCPI_THERMAL_SET_TSADC_CYCLE: {
+            volatile struct __packed_rx2 {
+                u32 clk_cycle;
+            } *pBuf_rx2;
+
+            volatile struct __packed_tx2 {
+                U32 status;
+            } *pBuf_tx2;
+
+            pBuf_rx2 = (volatile struct __packed_rx2 *)pmsg->A2B_Buf;
+            pBuf_tx2 = (volatile struct __packed_tx2 *)pmsg->B2A_Buf;
+
+            g_clk_cycle = pBuf_rx2->clk_cycle;
+//          printf("[MCU]clk_cycle=%d\n\r", g_clk_cycle);
+
+            pBuf_tx2->status = SCPI_SUCCESS;
+            Mbox_CmdDone(pmsg);
             break;
         }
 
@@ -127,7 +150,8 @@ void task_tsadc(void *pdata)
 void create_tsadc_task(void)
 {
     /* Create Tasks */
-    CoCreateTask(task_tsadc, (void *)0, TASK_TSADC_PRI, &task_tsadc_stk[TASK_STK_SIZE-1], TASK_STK_SIZE);
+    CoCreateTask(task_tsadc, (void *)0, TASK_TSADC_PRI,
+                &task_tsadc_stk[TASK_STK_SIZE-1], TASK_STK_SIZE);
 }
 
 #endif
