@@ -29,7 +29,7 @@ void task_init(void *pdata)
 int main(void)
 {
 //	printf("\nMCU Version %s\n", MCU_SW_VERSION);
-	*(volatile U32*)0x0 = 2015070707;/*addr 0 is M3 MSP value*/
+	*(volatile U32*)0x0 = 2015080408;/*addr 0 is M3 MSP value*/
 	/*v1.04 20150401:training used cs 0*/
 	/*V1.05 20150402:mailbox used global msg*/
 	/*V2.00 20150403:*/
