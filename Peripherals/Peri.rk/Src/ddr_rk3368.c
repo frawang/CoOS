@@ -394,9 +394,9 @@ __sramfunc static uint32  ddr_setSys_pll(uint32 nMHz, uint32 set)
         pCRU_Reg->CRU_PLL_CON[DPLL][3] = PLL_DE_RESET;
         //dsb;
         ret = nMHz;
-        //while((pCRU_Reg->CRU_PLL_CON[DPLL][1] & (0x1<<31))==0); /*wait for pll locked*/
+        while((pCRU_Reg->CRU_PLL_CON[DPLL][1] & (0x1<<31))==0); /*wait for pll locked*/
 
-        //pCRU_Reg->CRU_PLL_CON[DPLL][3] = PLLMODE(NORMAL_MODE);
+        pCRU_Reg->CRU_PLL_CON[DPLL][3] = PLLMODE(NORMAL_MODE);
     }
 	return ret;
 }
@@ -1672,8 +1672,8 @@ __sramfunc static void ddr_SRE_2_SRX(uint32 freq)
 	ddr_set_dll_bypass(freq);	/*set phy dll mode;*/
 	ddr_update_timing();
 
-    while((pCRU_Reg->CRU_PLL_CON[DPLL][1] & (0x1<<31))==0); /*wait for pll locked*/
-    pCRU_Reg->CRU_PLL_CON[DPLL][3] = PLLMODE(NORMAL_MODE);
+//    while((pCRU_Reg->CRU_PLL_CON[DPLL][1] & (0x1<<31))==0); /*wait for pll locked*/
+//    pCRU_Reg->CRU_PLL_CON[DPLL][3] = PLLMODE(NORMAL_MODE);
 
 	pPHY_Reg->PHY_REG0 |= (1 << 2); /*soft de-reset analogue(dll)*/
 	ddr_delayus(5);	
