@@ -10,6 +10,7 @@ __sramdata static uint32 clk_gate[CLK_GATE_NUM];
 __sramdata static uint8 mmu_status;
 __sramdata static uint8 vop_status;
 __sramdata static uint8 id_mipi_dis;
+__sramdata uint32 dclk_vop_div;
 
 static const uint8 ddr3_cl_cwl[22][7]={
 /*speed   0~330         331~400       401~533        534~666       667~800        801~933      934~1066
@@ -1513,6 +1514,17 @@ sramlocalfunc static void ddr_update_odt(void)
 	dsb();
 }
 
+sramlocalfunc static void dsi_pwr_on(void)
+{
+	*(volatile uint32 *)(0x40960000 + 0x04) = 0;
+	*(volatile uint32 *)(0x40960000 + 0x34) = 0;
+	*(volatile uint32 *)(0x40960000 + 0x04) = 1;
+}
+sramlocalfunc static void dsi_pwr_off(void)
+{
+	*(volatile uint32 *)(0x40960000 + 0x04) = 0;
+}
+
 sramlocalfunc static void idle_port(void)
 {
     uint32 idle_req, idle_stus;
@@ -1520,30 +1532,34 @@ sramlocalfunc static void idle_port(void)
     pPMU_Reg->PMU_PMU_BUS_IDLE_REQ = idle_req_cci400;
     while ((pPMU_Reg->PMU_PMU_BUS_IDLE_ST & (1<<15)) != 0); //bit31 and bit 15 all 0 is idle 
 #ifdef SYNC_WITH_LCDC_FRAME_INTR
-    /*diable vop DMA and stall vop mmu*/
-    vop_status = 0;
-    if(((pCRU_Reg->CRU_CLKGATE_CON[16] & (0x1<<6)) == 0)//clk
-          && ((pPMU_Reg->PMU_PMU_PWRDN_ST & (1<<14)) == 0))//pd_vio
-    {
-        if((*(volatile uint32*)VOP_WIN0_CTRL0 & 0x1) | (*(volatile uint32*)VOP_WIN1_CTRL0 & 0x1)
-            | (*(volatile uint32*)VOP_WIN2_CTRL0 & 0x1) | (*(volatile uint32*)VOP_WIN3_CTRL0 & 0x1))
-        {
-            //*(uint32 *)(VOP_BASE_ADDR + 0x8) |= (0x1<<21);//DMA stop enable
-            /*get mmu status if 1, mmu is stall*/
-           if( *(volatile uint32 *)(VOP_BASE_ADDR + 0x304) & 0x1)
-           {
-               vop_status = 1;
-               mmu_status = ((*(volatile uint32*)(VOP_BASE_ADDR+0x304)) >> 2) & 0x1;
-               *(volatile uint32 *)(VOP_BASE_ADDR + 0x308) = 0x2;//stall mmu
-               while(((*(volatile uint32*)(VOP_BASE_ADDR+0x304)) & (0x1<<2)) == 0);
-           }
-           //pCRU_Reg->CRU_CLKSEL_CON[20] = ((pCRU_Reg->CRU_CLKSEL_CON[20] & 0xff)*2+1) | (0xff<<16);
-       }
-    }
-    if(id_mipi_dis == Ddr_FALSE)
-        pCRU_Reg->CRU_CLKSEL_CON[20] = ((pCRU_Reg->CRU_CLKSEL_CON[20] & 0xff)*2+1) | (0xff<<16);
-    /*dclk_vop0 div * 2*/
-    //pCRU_Reg->CRU_CLKSEL_CON[20] = ((pCRU_Reg->CRU_CLKSEL_CON[20] & 0xff)*2+1) | (0xff<<16);
+		/*diable vop DMA and stall vop mmu*/
+		vop_status = 0;
+		if(((pCRU_Reg->CRU_CLKGATE_CON[16] & (0x1<<6)) == 0)//clk
+			  && ((pPMU_Reg->PMU_PMU_PWRDN_ST & (1<<14)) == 0))//pd_vio
+		{
+			if((*(volatile uint32*)VOP_WIN0_CTRL0 & 0x1) | (*(volatile uint32*)VOP_WIN1_CTRL0 & 0x1)
+				| (*(volatile uint32*)VOP_WIN2_CTRL0 & 0x1) | (*(volatile uint32*)VOP_WIN3_CTRL0 & 0x1))
+			{
+				vop_status = 1;
+				if((id_mipi_dis == SCREEN_MIPI))
+				{
+					dsi_pwr_off();
+				}
+				/*get mmu status if 1, mmu is stall*/
+			   if( *(volatile uint32 *)(VOP_BASE_ADDR + 0x304) & 0x1)
+			   {
+				   vop_status = 2;
+				   mmu_status = ((*(volatile uint32*)(VOP_BASE_ADDR+0x304)) >> 2) & 0x1;
+				   *(volatile uint32 *)(VOP_BASE_ADDR + 0x308) = 0x2;//stall mmu
+				   while(((*(volatile uint32*)(VOP_BASE_ADDR+0x304)) & (0x1<<2)) == 0);
+			   }
+				if(id_mipi_dis != SCREEN_HDMI)
+				{
+					dclk_vop_div = pCRU_Reg->CRU_CLKSEL_CON[20] & 0xff;
+					pCRU_Reg->CRU_CLKSEL_CON[20] = (DCLK_VOP_DIV & 0xff) | (0xff<<16);
+				}
+		   }
+		}
 #endif
 
 	rk3368_ddr_memCpy(&(clk_gate[0]), (uint32 *)&(pCRU_Reg->CRU_CLKGATE_CON[0]),CLK_GATE_NUM);
@@ -1569,21 +1585,22 @@ sramlocalfunc static void deidle_port(void)
 	while ((pPMU_Reg->PMU_PMU_BUS_IDLE_ST & idle_stus) != 0);
 	rk3368_ddr_memCpy_mask((uint32 *)&(pCRU_Reg->CRU_CLKGATE_CON[0]),&(clk_gate[0]),CLK_GATE_NUM);
 #ifdef SYNC_WITH_LCDC_FRAME_INTR
-    if(id_mipi_dis == Ddr_FALSE)
-        pCRU_Reg->CRU_CLKSEL_CON[20] = ((((pCRU_Reg->CRU_CLKSEL_CON[20] & 0xff)+1)/2)-1) | (0xff<<16);
-
-    if(vop_status)
-    {
-       // *(uint32 *)(VOP_BASE_ADDR + 0x8) &= (~(0x1<<21));
-       /*mmu paging enable and mmu is unstall*/
-       //pCRU_Reg->CRU_CLKSEL_CON[20] = ((((pCRU_Reg->CRU_CLKSEL_CON[20] & 0xff)+1)/2)-1) | (0xff<<16);
-       if(mmu_status == 0)
-       {
-            *(volatile uint32 *)(VOP_BASE_ADDR + 0x308) = 0x3;//disable stall mmu
-            while(((*(volatile uint32*)(VOP_BASE_ADDR+0x304)) & (0x1<<2)) != 0);
-       }
-       //*(uint32 *)(VOP_BASE_ADDR + 0x8) &= (~(0x1<<21)); //DMA stop disable
-    }
+		if(vop_status)
+		{
+			if(id_mipi_dis != SCREEN_HDMI)
+				pCRU_Reg->CRU_CLKSEL_CON[20] = dclk_vop_div | (0xff<<16);
+			/*mmu paging enable and mmu is unstall*/
+			//pCRU_Reg->CRU_CLKSEL_CON[20] = ((((pCRU_Reg->CRU_CLKSEL_CON[20] & 0xff)+1)/2)-1) | (0xff<<16);
+			if((mmu_status == 0) && (vop_status == 2))
+			{
+				*(volatile uint32 *)(VOP_BASE_ADDR + 0x308) = 0x3;//disable stall mmu
+				while(((*(volatile uint32*)(VOP_BASE_ADDR+0x304)) & (0x1<<2)) != 0);
+			}
+			if(id_mipi_dis == SCREEN_MIPI)
+			{
+			   dsi_pwr_on();
+			}
+		}
 #endif
 	pPMU_Reg->PMU_PMU_BUS_IDLE_REQ &= ~idle_req_cci400;
 	while((pPMU_Reg->PMU_PMU_BUS_IDLE_ST & (1<<15))!=(1<<15)); //cci400 deidle
@@ -1691,7 +1708,7 @@ __sramfunc static void ddr_SRE_2_SRX(uint32 freq)
 
 static uint32 save_sp;
 
-uint32 rk3368_ddr_change_freq(uint32 nMHz)
+uint32 rk3368_ddr_change_freq(uint32 nMHz, uint32 lcdc_type)
 {
     uint32 ret;
 //    uint32 freq_slew;
@@ -1707,7 +1724,13 @@ uint32 rk3368_ddr_change_freq(uint32 nMHz)
     } 
 
     ddr_get_parameter(ret);
-
+    if((lcdc_type == SCREEN_MIPI) || (lcdc_type == SCREEN_DUAL_MIPI))
+    	id_mipi_dis = SCREEN_MIPI;
+    else if((lcdc_type == SCREEN_HDMI) || (lcdc_type == SCREEN_TVOUT) ||
+		(lcdc_type == SCREEN_RGB) || (lcdc_type == SCREEN_TVOUT_TEST))
+		id_mipi_dis = SCREEN_HDMI;
+	else
+		id_mipi_dis = lcdc_type;
     /*wait for lcdc line flag intrrupt*/
 #ifdef SYNC_WITH_LCDC_FRAME_INTR
     /*wait interrupt when win0 orr win1 enable*/
@@ -1718,6 +1741,7 @@ uint32 rk3368_ddr_change_freq(uint32 nMHz)
             | (*(uint32*)VOP_WIN2_CTRL0 & 0x1) | (*(uint32*)VOP_WIN3_CTRL0 & 0x1))
         {
             *(uint32 *)VOP_INTR_CLEAR = VOP_CLEAR_FLAG1;
+            ddr_delayus(1);
             while(((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG1_STATUS)==0);
         }
     }
@@ -1830,10 +1854,6 @@ int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type)
 
 	die = 1 << (READ_BW_INFO() - READ_DIE_BW_INFO());
 	ddr_reg.ddr_capability_per_die = ddr_get_cap(0) / die;
-	if((lcdc_type == SCREEN_MIPI) || (lcdc_type == SCREEN_DUAL_MIPI))
-	    id_mipi_dis = Ddr_TRUE;
-	else
-        id_mipi_dis = Ddr_FALSE;
     /*
     pPMUGRF_Reg->PMUGRF_GPIO0_IOMUX.GPIOD_IOMUX = (0x3<<(8+16))|(0x0<<8);//GPIO0_D4 IOMUX->GPIO
     *(uint32*)GPIO0_BASE_ADDR |= (0x1<<28);//D4 high
@@ -1860,7 +1880,7 @@ int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type)
          freq = ddr_get_dram_freq();
     }
 
-	rk3368_ddr_change_freq(freq);
+	rk3368_ddr_change_freq(freq, lcdc_type);
 //    printf("  freq:%dMHz\n\r",nMHz);
 	/*ddr_print("init success!!! freq=%luMHz\n",
 		  nMHz);

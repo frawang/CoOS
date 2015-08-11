@@ -41,6 +41,7 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 	case SCPI_DDR_SET_FREQ: {
 		volatile struct __packed1 {
 			U32 clk_rate;
+			U32 lcdc_type;
 		} *pBuf_rx;
 
 		volatile struct __packed2 {
@@ -50,7 +51,7 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 		pBuf_rx = (volatile struct __packed1 *)pMsg->A2B_Buf;
 		pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
 //		printf("[%d]MCU:Change to %dMHz->  ",(U32)OSTickCnt,pBuf_rx->clk_rate);
-		gDdr_freq_MHz = rk3368_ddr_change_freq(pBuf_rx->clk_rate);
+		gDdr_freq_MHz = rk3368_ddr_change_freq(pBuf_rx->clk_rate, pBuf_rx->lcdc_type);
 //		printf("[%d]success %dMHz\n\r",(U32)OSTickCnt,gDdr_freq_MHz);
 		pBuf_tx->Status = SCPI_SUCCESS;
 		Mbox_CmdDone(pMsg);

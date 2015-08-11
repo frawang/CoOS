@@ -998,6 +998,7 @@ typedef struct BACKUP_REG_Tag {
 
 
 #define SYNC_WITH_LCDC_FRAME_INTR
+#define DCLK_VOP_DIV		(128 -1)
 #define VOP_CLEAR_FLAG0     ((0x1<<(16+3)) | (0x1<<3))
 #define VOP_CLEAR_FLAG1     ((0x1<<(16+4)) | (0x1<<4))
 #define VOP_FLAG0_STATUS    (1<<19)
@@ -1039,7 +1040,7 @@ extern void rk3368_ddr_memSet(uint32 *dstAddr, uint32 count, uint32 value);
 extern void rk3368_ddr_memCpy(uint32 *dstAddr, uint32 *srcAddr, uint32 count);
 extern void rk3368_ddr_memCpy_mask(uint32 *dstAddr, uint32 *srcAddr, uint32 count);
 
-uint32 rk3368_ddr_change_freq(uint32 nMHz);
+uint32 rk3368_ddr_change_freq(uint32 nMHz, uint32 lcdc_type);
 void rk3368_ddr_set_auto_self_refresh(uint8 en);
 //int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq);
 int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type);

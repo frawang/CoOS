@@ -29,7 +29,7 @@ void task_init(void *pdata)
 int main(void)
 {
 //	printf("\nMCU Version %s\n", MCU_SW_VERSION);
-	*(volatile U32*)0x0 = 2015080408;/*addr 0 is M3 MSP value*/
+	*(volatile U32*)0x0 = 2015081109;/*addr 0 is M3 MSP value*/
 	/*v1.04 20150401:training used cs 0*/
 	/*V1.05 20150402:mailbox used global msg*/
 	/*V2.00 20150403:*/
@@ -43,6 +43,7 @@ int main(void)
 	/*V2.05 2015062605 Fixed suspend&resume issue and added tsadc function */
 	/*V2.06 2015070106 Modified tsadc function priority */	
 	/*V2.07 2015070707 Fixed tsadc bug and added idle wfi */
+	/*v2.08 2015081109 fix hdmi dcf display abnormal*/
 	/*hy v1.01 set (mmu_status == 0)*/
 	/*hy v1.02 :"MCU: Initialize MCU V2.01 20150420_MMUstall_hy_V1.02" ÐÞ¸Ädisable stall Ìõ¼þ¶ª£»*/
 	/*cru must be inital first if not coos may can't run task*/
