@@ -53,9 +53,10 @@ static int tsadc_get_temp_code(void)
 
     writel(0x38, (TSADC_BASE_ADDR + TSADCV2_USER_CON));
     dsb();
-    CoUdelay(g_clk_cycle * 12);
+    CoUdelay(g_clk_cycle * 13);
 
     for (i=0; i<50; i++) { /* try 50 times */
+        CoUdelay(g_clk_cycle);
         adc_pd = readl(TSADC_BASE_ADDR + TSADCV2_INT_PD);
         if ((adc_pd & 0x100) == 0x100) {
             CoUdelay(1);
@@ -67,7 +68,6 @@ static int tsadc_get_temp_code(void)
             dsb();
             break;
         }
-        CoUdelay(g_clk_cycle);
     }
 
     /*power down, channel 0*/
