@@ -1514,6 +1514,44 @@ sramlocalfunc static void ddr_update_odt(void)
 	dsb();
 }
 
+#define RK3368_PMU_PWRDN_ST 0x10
+#define RK3368_PMU_CORE_PWR_ST 0x38
+
+static void wait_cpus_into_wfe(void)
+{
+	uint32 cur_cpu, cpus, power_st, power_msk, wfe_msk;
+	uint32 loop = 0;
+/*get current cpu id*/
+	//cur_cpu = mmio_read_32(GICD_BASE + GICD_ITARGETSR);
+	cur_cpu = 1;/*default cpu 0 response fiq*/
+	cpus = (~cur_cpu) & 0xff;
+/*get power on cpu id*/
+	power_st = mmio_read_32(PMU_BASE_ADDR + RK3368_PMU_PWRDN_ST);
+	power_msk = (power_st & 0xf) | ((power_st>>(5-4))&0xf0);
+	power_msk = (~power_msk) & 0xff;
+/*exclude current cpu*/
+	power_msk &= cpus;
+/*standby wfe cluster l[2:5],cluster big[12:15]*/
+	wfe_msk = ((power_msk & 0xf) << 2) | ((power_msk & 0xf0) << (12-4));
+	while((mmio_read_32(PMU_BASE_ADDR + RK3368_PMU_CORE_PWR_ST) & wfe_msk) != wfe_msk) {
+		ddr_delayus(1);
+	}
+}
+
+
+#define FIQ_NUM_FOR_DCF		(143)  /*NA irq map to fiq for dcf*/
+static void ntf_cpu_into_wfe(void)
+{
+	mmio_write_32(ddr_reg.ddr_addr_mcu_el3,1);
+	mmio_write_32(0x40b71200+((FIQ_NUM_FOR_DCF/32)*4), (1<< (FIQ_NUM_FOR_DCF%32)));
+	wait_cpus_into_wfe();
+}
+
+static void ntf_cpu_exit_wfe(void)
+{
+	mmio_write_32(ddr_reg.ddr_addr_mcu_el3,0);
+}
+
 sramlocalfunc static void dsi_pwr_on(void)
 {
 	*(volatile uint32 *)(0x40960000 + 0x04) = 0;
@@ -1529,8 +1567,8 @@ sramlocalfunc static void idle_port(void)
 {
     uint32 idle_req, idle_stus;
 
-    pPMU_Reg->PMU_PMU_BUS_IDLE_REQ = idle_req_cci400;
-    while ((pPMU_Reg->PMU_PMU_BUS_IDLE_ST & (1<<15)) != 0); //bit31 and bit 15 all 0 is idle 
+    //pPMU_Reg->PMU_PMU_BUS_IDLE_REQ = idle_req_cci400;
+    //while ((pPMU_Reg->PMU_PMU_BUS_IDLE_ST & (1<<15)) != 0); //bit31 and bit 15 all 0 is idle 
 #ifdef SYNC_WITH_LCDC_FRAME_INTR
 		/*diable vop DMA and stall vop mmu*/
 		vop_status = 0;
@@ -1564,9 +1602,9 @@ sramlocalfunc static void idle_port(void)
 
 	rk3368_ddr_memCpy(&(clk_gate[0]), (uint32 *)&(pCRU_Reg->CRU_CLKGATE_CON[0]),CLK_GATE_NUM);
     rk3368_ddr_memSet((uint32 *)&(pCRU_Reg->CRU_CLKGATE_CON[0]),CLK_GATE_NUM,0xffff0000);
-    idle_req = idle_req_msch_en | idle_req_cci400;
-    idle_stus = idle_msch;// | idle_core;
-    pPMU_Reg->PMU_PMU_BUS_IDLE_REQ = idle_req;
+    idle_req = idle_req_msch_en;
+    idle_stus = idle_msch;
+    pPMU_Reg->PMU_PMU_BUS_IDLE_REQ |= idle_req;
 	dsb();
 	while ((pPMU_Reg->PMU_PMU_BUS_IDLE_ST & idle_stus) != idle_stus);
 	//rk3368_ddr_memCpy(&(pCRU_Reg->CRU_CLKGATE_CON[0]),&(clk_gate[0]),CLK_GATE_NUM);
@@ -1602,8 +1640,8 @@ sramlocalfunc static void deidle_port(void)
 			}
 		}
 #endif
-	pPMU_Reg->PMU_PMU_BUS_IDLE_REQ &= ~idle_req_cci400;
-	while((pPMU_Reg->PMU_PMU_BUS_IDLE_ST & (1<<15))!=(1<<15)); //cci400 deidle
+	//pPMU_Reg->PMU_PMU_BUS_IDLE_REQ &= ~idle_req_cci400;
+	//while((pPMU_Reg->PMU_PMU_BUS_IDLE_ST & (1<<15))!=(1<<15)); //cci400 deidle
 }
 
 sramlocalfunc static void ddr_selfrefresh_enter(uint32 nMHz)
@@ -1731,8 +1769,15 @@ uint32 rk3368_ddr_change_freq(uint32 nMHz, uint32 lcdc_type)
 		id_mipi_dis = SCREEN_HDMI;
 	else
 		id_mipi_dis = lcdc_type;
+
+	__asm volatile 
+	(
+		" CPSID   I        \n"
+		" CPSID   F        \n"
+	);
     /*wait for lcdc line flag intrrupt*/
 #ifdef SYNC_WITH_LCDC_FRAME_INTR
+rewait_vbank:
     /*wait interrupt when win0 orr win1 enable*/
     if(((pCRU_Reg->CRU_CLKGATE_CON[16] & (0x1<<6)) == 0)//clk
           && ((pPMU_Reg->PMU_PMU_PWRDN_ST & (1<<14)) == 0))//pd_vio
@@ -1743,17 +1788,23 @@ uint32 rk3368_ddr_change_freq(uint32 nMHz, uint32 lcdc_type)
             *(uint32 *)VOP_INTR_CLEAR = VOP_CLEAR_FLAG1;
             ddr_delayus(1);
             while(((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG1_STATUS)==0);
+            //*(uint32 *)VOP_INTR_CLEAR = VOP_CLEAR_FLAG0;
+            ntf_cpu_into_wfe();
+            if(((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG0_STATUS))
+            {
+				/*wait cpu wfe timeout*/
+				//printf("MCU:wait wfe tout\n\r");
+				ntf_cpu_exit_wfe();
+				goto rewait_vbank;
+            }
+			while(((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG0_STATUS)==0);
         }
     }
+    else
+    {
+		ntf_cpu_into_wfe();
+    }
 #endif
-    GPIO0_D4_H;
-    /** 1. Make sure there is no host access */
-    /*disbale interrupt*/
-    __asm volatile 
-    (
-        " CPSID   I        \n"
-        " CPSID   F        \n"
-    );
     GPIO0_D4_H;
     DDR_SAVE_SP(save_sp);
     ddr_SRE_2_SRX(ret);
@@ -1765,7 +1816,7 @@ uint32 rk3368_ddr_change_freq(uint32 nMHz, uint32 lcdc_type)
         " CPSIE   I        \n"
         " CPSIE   F        \n"
     );
-
+	ntf_cpu_exit_wfe();
 /*    clk_set_rate(clk_get(NULL, "ddr_pll"), 0);    */
 out:
     return ret;
@@ -1828,9 +1879,10 @@ static uint32 ddr_get_cap(uint32 cs_cap)
 	}
 }
 
-int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type)
+int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type, u32 addr_mcu_el3)
 {
 	uint32 die = 1;
+	uint32 i;
 //	uint32 nMHz; 
 
 	//ddr_print("RK3368 version 1.00 20141111\n");
@@ -1854,6 +1906,7 @@ int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type)
 
 	die = 1 << (READ_BW_INFO() - READ_DIE_BW_INFO());
 	ddr_reg.ddr_capability_per_die = ddr_get_cap(0) / die;
+	ddr_reg.ddr_addr_mcu_el3 = addr_mcu_el3 + 0x60000000;
     /*
     pPMUGRF_Reg->PMUGRF_GPIO0_IOMUX.GPIOD_IOMUX = (0x3<<(8+16))|(0x0<<8);//GPIO0_D4 IOMUX->GPIO
     *(uint32*)GPIO0_BASE_ADDR |= (0x1<<28);//D4 high

@@ -16,6 +16,7 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 			U32 dram_speed_bin;
 			U32 freq;
 			U32 lcdc_type;
+			U32 addr_mcu_el3;
 		} *pBuf_rx;
 
 		volatile struct __packed2 {
@@ -31,7 +32,7 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 		freq = pBuf_rx->freq;
 		lcdc_type = pBuf_rx->lcdc_type;
 		//to be defined
-		rk3368_ddr_init(dram_speed_bin, freq, lcdc_type);
+		rk3368_ddr_init(dram_speed_bin, freq, lcdc_type, pBuf_rx->addr_mcu_el3);
 		
 		pBuf_tx->Status = SCPI_SUCCESS;
 		Mbox_CmdDone(pMsg);

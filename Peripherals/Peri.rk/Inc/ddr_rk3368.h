@@ -972,6 +972,7 @@ typedef struct BACKUP_REG_Tag {
 	uint32 ddr_capability_per_die;
 	uint32 ddr_dll_status;
 	uint32 ddr_sr_idle;
+	uint32 ddr_addr_mcu_el3;
 } BACKUP_REG_T;
 
 #ifndef Ddr_FALSE
@@ -1021,6 +1022,16 @@ typedef struct BACKUP_REG_Tag {
 #define _DDR_DEBUG  0
 #endif
 
+static inline void mmio_write_32(uint32 addr, uint32 value)
+{
+	*(volatile uint32*)addr = value;
+}
+
+static inline uint32 mmio_read_32(uint32 addr)
+{
+	return *(volatile uint32*)addr;
+}
+
 /*
  * Output a debug text when condition "cond" is met. The "cond" should be
  * computed by a preprocessor in the best case, allowing for the best
@@ -1043,7 +1054,7 @@ extern void rk3368_ddr_memCpy_mask(uint32 *dstAddr, uint32 *srcAddr, uint32 coun
 uint32 rk3368_ddr_change_freq(uint32 nMHz, uint32 lcdc_type);
 void rk3368_ddr_set_auto_self_refresh(uint8 en);
 //int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq);
-int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type);
+int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type, u32 addr_mcu_el3);
 
 uint32 ddr_get_dram_freq(void);
 
