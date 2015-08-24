@@ -38,30 +38,18 @@
  */ 
 #include <Peri.h>
 #include <coocox.h>
+#include "AppConfig.h"
 
-OS_FlagID			flags_chan[NUM_CHANS];	/*!< Flag id,related to mailbox channels.*/
-OS_EventID			mboxs[SCPI_MAX];		/*!< Save id of mailbox.		*/
+OS_FlagID   flags_chan[NUM_CHANS];  /*!< Flag id,related to mailbox channels.*/
+OS_EventID  mboxs[SCPI_MAX];        /*!< Save id of mailbox.        */
 
-MboxReg * pMbox = (MboxReg *)MBOX_BASE;
-MboxBuf *pBuf = (MboxBuf *)(SRAM_BASE + SRAM_SIZE - SZ_4K);
+MboxReg *pMbox = (MboxReg *)MBOX_BASE;
+MboxBuf *pBuf  = (MboxBuf *)(SRAM_BASE + SRAM_SIZE - SZ_4K);
 
-#if 0
-static void SetMcuToWfiState(void)
-{    
-    U32 systick_ctl;
-    systick_ctl = NVIC_ST_CTRL;
-    NVIC_ST_CTRL = 0;
-    //for(; ;)
-    {
-        __asm volatile
-        (
-            "wfi    \n"
-        );
-    }
-    NVIC_ST_CTRL = systick_ctl;
-}
-#endif
 extern OS_EventID suspend_mail;
+
+extern void *memset(void *s, int ch, size_t n);
+extern void *memcpy(void *dest, const void *src, size_t n);
 
 static void Mbox_HandleSysCmd(MboxMsg *pMsg)
 {
@@ -71,12 +59,18 @@ static void Mbox_HandleSysCmd(MboxMsg *pMsg)
 	case SCPI_SYS_GET_VERSION: {
 		volatile struct __packed {
 			U32 Status;
-			U32 Ver;
+			struct scpi_mcu_ver {
+				u32  scpi_ver;
+				char mcu_ver[16];
+			} version;
 		} *pBuf;
 
 		pBuf = (volatile struct __packed *)pMsg->B2A_Buf;
+		memset((void *)pBuf, 0, sizeof(*pBuf));
 		pBuf->Status = SCPI_SUCCESS;
-		pBuf->Ver = SCPI_VERSION;
+		pBuf->version.scpi_ver = SCPI_VERSION;
+		memcpy((void *)(pBuf->version.mcu_ver), MCU_SW_VERSION, 16);
+
 		Mbox_CmdDone(pMsg);
 		break;
 	}

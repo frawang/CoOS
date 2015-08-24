@@ -1520,7 +1520,6 @@ sramlocalfunc static void ddr_update_odt(void)
 static void wait_cpus_into_wfe(void)
 {
 	uint32 cur_cpu, cpus, power_st, power_msk, wfe_msk;
-	uint32 loop = 0;
 /*get current cpu id*/
 	//cur_cpu = mmio_read_32(GICD_BASE + GICD_ITARGETSR);
 	cur_cpu = 1;/*default cpu 0 response fiq*/
@@ -1882,7 +1881,6 @@ static uint32 ddr_get_cap(uint32 cs_cap)
 int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type, u32 addr_mcu_el3)
 {
 	uint32 die = 1;
-	uint32 i;
 //	uint32 nMHz; 
 
 	//ddr_print("RK3368 version 1.00 20141111\n");

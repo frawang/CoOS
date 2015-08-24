@@ -16,7 +16,8 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define SCPI_VERSION		0x01000000  //version: 1.0.0.0
+/* SCPI version, always in line with master CPU */
+#define SCPI_VERSION        0x01000001  //version: 1.0.0.1
 
 typedef enum scpi_error_codes {
 	SCPI_SUCCESS = 0, /* Success */

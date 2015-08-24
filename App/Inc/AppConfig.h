@@ -9,6 +9,10 @@
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
 
+/* MCU version Definition */
+#define MCU_SW_VERSION  "V2.09 20150811"
+
+
 /* Support TSADC in MCU */
 #define CFG_TSADC
 
