@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
-V2.09	 20150811  Fixed hdim display error when ddr changing freq, and vector table error
+V2.10  20150825  Optimized TSADC function and changed DDR frequency conversion scheme
+V2.09  20150811  Fixed hdim display error when ddr changing freq, and vector table error
 V2.08  20150804  Fixed the TSADC bug that can not get temperature accurately
 V2.07  20150707  Fixed tsadc bug and added wfi also to idle task
 V2.06  20150701  Modified tsadc function priority
