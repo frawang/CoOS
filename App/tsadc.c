@@ -42,8 +42,8 @@ static int tsadc_get_temp_code(void)
     CoUdelay(TSADC_CLK_GATE_DELAY_TIME);
 
     /* set CCI400 */
-    cci_aclk_current = readl(0x407600114) & 0x000000ff;
-    writel(0x001f001f, 0x407600114);
+    cci_aclk_current = readl(0x40760114) & 0x000000ff;
+    writel(0x001f001f, 0x40760114);
 
     /* get temperature from tsadc */
     /* power up, channel 0*/
@@ -79,7 +79,7 @@ static int tsadc_get_temp_code(void)
     
     /* restore CCI400 */
     cci_aclk_current |= 0x00ff0000;
-    writel(cci_aclk_current, 0x407600114);
+    writel(cci_aclk_current, 0x40760114);
     
     return g_adc_data;
 }
