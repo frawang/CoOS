@@ -8,7 +8,6 @@ U32 gDdr_freq_MHz = 0;
 void Ddr_HandleCmd(MboxMsg *pMsg)
 {
 	Scpi_DdrCmd cmd = CMD_ID(pMsg->Cmd);
-//    U32 i;
 
 	switch (cmd) {
 	case SCPI_DDR_INIT: {
@@ -51,9 +50,7 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 
 		pBuf_rx = (volatile struct __packed1 *)pMsg->A2B_Buf;
 		pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
-//		printf("[%d]MCU:Change to %dMHz->  ",(U32)OSTickCnt,pBuf_rx->clk_rate);
 		gDdr_freq_MHz = rk3368_ddr_change_freq(pBuf_rx->clk_rate, pBuf_rx->lcdc_type);
-//		printf("[%d]success %dMHz\n\r",(U32)OSTickCnt,gDdr_freq_MHz);
 		pBuf_tx->Status = SCPI_SUCCESS;
 		Mbox_CmdDone(pMsg);
 		break;
@@ -117,11 +114,21 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 		pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
 		pBuf_tx->Status = SCPI_SUCCESS;
 		pBuf_tx->clk_rate = ddr_get_dram_freq();
-		//printf("[%d]Get:%dM,ADR:%x,CH:%d\n\r",(U32)OSTickCnt,pBuf_tx->clk_rate,pBuf_tx,pMsg->Id);
 		Mbox_CmdDone(pMsg);
 		break;
 	}	
+	case SCPI_DDR_SEND_TIMING: {
+		volatile struct __packed2 {
+			U32 Status;
+		} *pBuf_tx;
 
+		pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
+
+		rk3368_ddr_timing_receive((void *)(pMsg->A2B_Buf), pMsg->A2B_Size);
+		pBuf_tx->Status = SCPI_SUCCESS;
+		Mbox_CmdDone(pMsg);
+		break;
+	}
 	default:
 		break;
 	}

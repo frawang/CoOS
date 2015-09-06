@@ -24,13 +24,6 @@
 #define DDR3_2133N  (20)    // 14-14-14
 #define DDR3_DEFAULT (21)
 
-#define DDR3_DDR2_DLL_DISABLE_FREQ    (300)	/* 颗粒dll disable的频率*/
-#define DDR3_DDR2_ODT_DISABLE_FREQ    (333)	/*颗粒odt disable的频率*/
-#define SR_IDLE                       (0x1)	/*unit:32*DDR clk cycle, and 0 for disable auto self-refresh*/
-#define PD_IDLE                       (0x40)	/*unit:DDR clk cycle, and 0 for disable auto power-down*/
-#define PHY_ODT_DISABLE_FREQ          (333)	/*定义主控端odt disable的频率*/
-#define PHY_DLL_DISABLE_FREQ          (400)	/*定义主控端dll bypass的频率*/
-
 #define dsb()                   \
     do {                        \
         __asm volatile          \
@@ -962,6 +955,29 @@ typedef union NOC_TIMING_Tag {
 	} b;
 } NOC_TIMING_T;
 
+#define TIMING_AVAILABLE  (0x12345670)
+
+struct ddr_timing {
+	u32 available;
+	u32 dram_spd_bin;
+	u32 sr_idle;
+	u32 pd_idle;
+	u32 dram_dll_dis_freq;
+	u32 phy_dll_dis_freq;
+	u32 dram_odt_dis_freq;
+	u32 phy_odt_dis_freq;
+	u32 ddr3_drv;
+	u32 ddr3_odt;
+	u32 lpddr3_drv;
+	u32 lpddr3_odt;
+	u32 lpddr2_drv;
+	u32 phy_clk_drv;
+	u32 phy_cmd_drv;
+	u32 phy_dqs_drv;
+	u32 phy_odt;
+};
+
+
 typedef struct BACKUP_REG_Tag {
 	PCTL_TIMING_T pctl_timing;
 	NOC_TIMING_T noc_timing;
@@ -973,6 +989,7 @@ typedef struct BACKUP_REG_Tag {
 	uint32 ddr_dll_status;
 	uint32 ddr_sr_idle;
 	uint32 ddr_addr_mcu_el3;
+	struct ddr_timing dram_timing;
 } BACKUP_REG_T;
 
 #ifndef Ddr_FALSE
@@ -1050,8 +1067,10 @@ static inline uint32 mmio_read_32(uint32 addr)
 extern void rk3368_ddr_memSet(uint32 *dstAddr, uint32 count, uint32 value);
 extern void rk3368_ddr_memCpy(uint32 *dstAddr, uint32 *srcAddr, uint32 count);
 extern void rk3368_ddr_memCpy_mask(uint32 *dstAddr, uint32 *srcAddr, uint32 count);
+extern void *memcpy(void *dest, const void *src, size_t n);
 
 uint32 rk3368_ddr_change_freq(uint32 nMHz, uint32 lcdc_type);
+void rk3368_ddr_timing_receive(void *p, u32 size);
 void rk3368_ddr_set_auto_self_refresh(uint8 en);
 //int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq);
 int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type, u32 addr_mcu_el3);

@@ -52,7 +52,8 @@ typedef enum scpi_ddr_cmd {
     SCPI_DDR_ROUND_RATE,	
     SCPI_DDR_AUTO_SELF_REFRESH,	
     SCPI_DDR_BANDWIDTH_GET,
-    SCPI_DDR_GET_FREQ,	
+    SCPI_DDR_GET_FREQ,
+    SCPI_DDR_SEND_TIMING,
 } Scpi_DdrCmd;
 
 typedef enum scpi_sys_cmd {

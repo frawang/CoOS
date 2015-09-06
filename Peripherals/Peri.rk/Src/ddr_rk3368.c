@@ -190,7 +190,7 @@ sramlocalfunc static  void ddr_move_to_Access_state(void)
 	/*set auto self-refresh idle*/
 	pDDR_Reg->MCFG1 =
 	    (pDDR_Reg->MCFG1 & 0xffffff00) | ddr_reg.ddr_sr_idle | (1 << 31);
-	pDDR_Reg->MCFG = (pDDR_Reg->MCFG & 0xffff00ff) | (PD_IDLE << 8);
+	pDDR_Reg->MCFG = (pDDR_Reg->MCFG & 0xffff00ff) | (ddr_reg.dram_timing.pd_idle << 8);
 	while (1) {
 		value = pDDR_Reg->STAT.b.ctl_stat;
 		if ((value == Access)
@@ -296,7 +296,7 @@ sramlocalfunc static void  ddr_set_dll_bypass(uint32 freq)
 	pPHY_Reg->PHY_REG38 = phase;	/*rx dll 45°delay*/
 	pPHY_Reg->PHY_REG48 = phase;	/*rx dll 45°delay*/
 	pPHY_Reg->PHY_REG58 = phase;	/*rx dll 45°delay*/
-	if (freq <= PHY_DLL_DISABLE_FREQ) {
+	if (freq <= ddr_reg.dram_timing.phy_dll_dis_freq) {
 		pPHY_Reg->PHY_REGDLL |= 0x1F;	/*TX DLL bypass */
 	} else {
 		pPHY_Reg->PHY_REGDLL &= ~0x1F;	/* TX DLL bypass*/
@@ -498,7 +498,7 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         /*3368*/
 		if(pDDR_Reg->TDPD == 1)
 		{
-	        if (nMHz <= DDR3_DDR2_DLL_DISABLE_FREQ) {   /*when dll bypss cl = cwl = 6*/
+	        if (nMHz <= p_ddr_reg->dram_timing.dram_dll_dis_freq) {   /*when dll bypss cl = cwl = 6*/
 	            cl = 10;
 	            cwl = 7;
 	        } else {
@@ -509,7 +509,7 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         }
         else
         {
-	        if (nMHz <= DDR3_DDR2_DLL_DISABLE_FREQ) {   /*when dll bypss cl = cwl = 6*/
+	        if (nMHz <= p_ddr_reg->dram_timing.dram_dll_dis_freq) {   /*when dll bypss cl = cwl = 6*/
 	            cl = 6;
 	            cwl = 6;
 	        } else {
@@ -521,10 +521,12 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         if (cl == 0) {
             ret = -4;   /*超过颗粒的最大频率*/
         }
-        if (nMHz <= DDR3_DDR2_ODT_DISABLE_FREQ) {
-            p_ddr_reg->ddrMR[1] = DDR3_DS_40 | DDR3_Rtt_Nom_DIS;
+        if (nMHz <= p_ddr_reg->dram_timing.dram_odt_dis_freq) {
+            //p_ddr_reg->ddrMR[1] = DDR3_DS_40 | DDR3_Rtt_Nom_DIS;
+            p_ddr_reg->ddrMR[1] = p_ddr_reg->dram_timing.ddr3_drv | DDR3_Rtt_Nom_DIS;
         } else {
-            p_ddr_reg->ddrMR[1] = DDR3_DS_40 | DDR3_Rtt_Nom_120;
+            p_ddr_reg->ddrMR[1] = p_ddr_reg->dram_timing.ddr3_drv |
+								  p_ddr_reg->dram_timing.ddr3_odt;
         }
         p_ddr_reg->ddrMR[2] = DDR3_MR2_CWL(cwl) /* | DDR3_Rtt_WR_60 */ ;
         p_ddr_reg->ddrMR[3] = 0;
@@ -821,7 +823,7 @@ static uint32 ddr_get_parameter(uint32 nMHz)
             cwl = 4;
             p_ddr_reg->ddrMR[2] = LPDDR2_RL8_WL4;
         }
-        p_ddr_reg->ddrMR[3] = LPDDR2_DS_34;
+        p_ddr_reg->ddrMR[3] = p_ddr_reg->dram_timing.lpddr2_drv;//LPDDR2_DS_34;
         p_ddr_reg->ddrMR[0] = 0;
         /**************************************************
         * PCTL Timing
@@ -1159,14 +1161,14 @@ static uint32 ddr_get_parameter(uint32 nMHz)
 			}
 		}
 
-        p_ddr_reg->ddrMR[3] = LPDDR3_DS_34;
-        if(nMHz <= DDR3_DDR2_ODT_DISABLE_FREQ)
+        p_ddr_reg->ddrMR[3] = p_ddr_reg->dram_timing.lpddr3_drv;//LPDDR3_DS_34;
+        if(nMHz <= p_ddr_reg->dram_timing.dram_odt_dis_freq)
         {
             p_ddr_reg->ddrMR11 = LPDDR3_ODT_DIS;
         }
         else
         {
-            p_ddr_reg->ddrMR11 = LPDDR3_ODT_240;
+            p_ddr_reg->ddrMR11 = p_ddr_reg->dram_timing.lpddr3_odt;
         }
         p_ddr_reg->ddrMR[0] = 0;
         /**************************************************
@@ -1455,7 +1457,7 @@ sramlocalfunc static uint32  ddr_update_mr(void)
 	cs = READ_CS_INFO();
 	cs = (1 << cs) - 1;	*/
 	if (ddr_reg.mem_type == DDR3) {
-		if (ddr_freq > DDR3_DDR2_DLL_DISABLE_FREQ) {
+		if (ddr_freq > ddr_reg.dram_timing.dram_dll_dis_freq) {
 			if ((ddr_reg.ddr_dll_status) == DDR3_DLL_DISABLE) {	/*off -> on*/
 				ddr_send_command(3, MRS_cmd, bank_addr(0x1) | cmd_addr((ddr_reg.ddrMR[1])));	/*DLL enable*/
 				ddr_send_command(3, MRS_cmd, bank_addr(0x0) | cmd_addr(((ddr_reg.ddrMR[0])) | DDR3_DLL_RESET));	/*DLL reset*/
@@ -1490,21 +1492,21 @@ sramlocalfunc static void ddr_update_odt(void)
 	/*adjust DRV and ODT*/
 	uint32 phy_odt;
 	if ((ddr_reg.mem_type == DDR3)||(ddr_reg.mem_type == LPDDR3)) {
-		if (ddr_freq <= PHY_ODT_DISABLE_FREQ) {
+		if (ddr_freq <= ddr_reg.dram_timing.phy_odt_dis_freq) {
 			phy_odt = PHY_RTT_DISABLE;
 		} else {
-			phy_odt = PHY_RTT_279ohm;
+			phy_odt = ddr_reg.dram_timing.phy_odt;
 		}
 	} else {
 		phy_odt = PHY_RTT_DISABLE;
 	}
-	pPHY_Reg->PHY_REG11 = PHY_DRV_ODT_SET(PHY_RON_34ohm);   //cmd drv
-    pPHY_Reg->PHY_REG16 = PHY_DRV_ODT_SET(PHY_RON_45ohm);   //clk drv
+	pPHY_Reg->PHY_REG11 = PHY_DRV_ODT_SET(ddr_reg.dram_timing.phy_cmd_drv);   //cmd drv
+    pPHY_Reg->PHY_REG16 = PHY_DRV_ODT_SET(ddr_reg.dram_timing.phy_clk_drv);   //clk drv
     
-    pPHY_Reg->PHY_REG20 = PHY_DRV_ODT_SET(PHY_RON_34ohm);   //DQS0 drv
-    pPHY_Reg->PHY_REG30 = PHY_DRV_ODT_SET(PHY_RON_34ohm);   //DQS1 drv
-    pPHY_Reg->PHY_REG40 = PHY_DRV_ODT_SET(PHY_RON_34ohm);   //DQS2 drv
-    pPHY_Reg->PHY_REG50 = PHY_DRV_ODT_SET(PHY_RON_34ohm);   //DQS3 drv
+    pPHY_Reg->PHY_REG20 = PHY_DRV_ODT_SET(ddr_reg.dram_timing.phy_dqs_drv);   //DQS0 drv
+    pPHY_Reg->PHY_REG30 = PHY_DRV_ODT_SET(ddr_reg.dram_timing.phy_dqs_drv);   //DQS1 drv
+    pPHY_Reg->PHY_REG40 = PHY_DRV_ODT_SET(ddr_reg.dram_timing.phy_dqs_drv);   //DQS2 drv
+    pPHY_Reg->PHY_REG50 = PHY_DRV_ODT_SET(ddr_reg.dram_timing.phy_dqs_drv);   //DQS3 drv
 
 	pPHY_Reg->PHY_REG21 = PHY_DRV_ODT_SET(phy_odt);	/*DQS0 odt*/
 	pPHY_Reg->PHY_REG31 = PHY_DRV_ODT_SET(phy_odt);	/*DQS1 odt*/
@@ -1824,7 +1826,7 @@ out:
 void rk3368_ddr_set_auto_self_refresh(uint8 en)
 {
 	/*set auto self-refresh idle    */
-	ddr_reg.ddr_sr_idle = en ? SR_IDLE : 0;
+	ddr_reg.ddr_sr_idle = en ? ddr_reg.dram_timing.sr_idle: 0;
 }
 
 __sramfunc void ddr_suspend(void)
@@ -1875,6 +1877,39 @@ static uint32 ddr_get_cap(uint32 cs_cap)
 			(1 << (row1 + col + bank + bw)));
 	} else {
 		return (1 << (row + col + bank + bw));
+	}
+}
+
+void rk3368_ddr_timing_receive(void *p, u32 size)
+{
+	if (size != (sizeof(struct ddr_timing) - 4)) {
+		ddr_reg.dram_timing.available = 0;
+	} else {
+		ddr_reg.dram_timing.available = TIMING_AVAILABLE;
+		memcpy((void *)(&ddr_reg.dram_timing.dram_spd_bin), (void *)p, size);
+	}
+}
+
+void rk3368_ddr_timing_init(void)
+{
+	if (ddr_reg.dram_timing.available == TIMING_AVAILABLE) {
+		ddr_reg.dram_timing.available = 1;
+	} else { /*using default timing*/
+		ddr_reg.dram_timing.sr_idle = 0x1;
+		ddr_reg.dram_timing.pd_idle = 0x40;
+		ddr_reg.dram_timing.dram_dll_dis_freq = 300;
+		ddr_reg.dram_timing.phy_dll_dis_freq = 400;
+		ddr_reg.dram_timing.dram_odt_dis_freq = 333;
+		ddr_reg.dram_timing.phy_odt_dis_freq = 333;
+		ddr_reg.dram_timing.ddr3_drv = DDR3_DS_40;
+		ddr_reg.dram_timing.ddr3_odt = DDR3_Rtt_Nom_120;
+		ddr_reg.dram_timing.lpddr3_drv = LPDDR3_DS_34;
+		ddr_reg.dram_timing.lpddr3_odt = LPDDR3_ODT_240;
+		ddr_reg.dram_timing.lpddr2_drv = LPDDR2_DS_34;
+		ddr_reg.dram_timing.phy_clk_drv = PHY_RON_45ohm;
+		ddr_reg.dram_timing.phy_cmd_drv = PHY_RON_34ohm;
+		ddr_reg.dram_timing.phy_dqs_drv = PHY_RON_34ohm;
+		ddr_reg.dram_timing.phy_odt = PHY_RTT_279ohm;
 	}
 }
 
@@ -1931,6 +1966,7 @@ int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type, u32 addr_
          freq = ddr_get_dram_freq();
     }
 
+	rk3368_ddr_timing_init();
 	rk3368_ddr_change_freq(freq, lcdc_type);
 //    printf("  freq:%dMHz\n\r",nMHz);
 	/*ddr_print("init success!!! freq=%luMHz\n",
