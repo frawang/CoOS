@@ -36,7 +36,7 @@
  * <h2><center>&copy; COPYRIGHT 2014 Fuzhou Rockchip Electronics Co., Ltd </center></h2>
  *******************************************************************************
  */ 
-#include <Peri.h>
+#include <peri.h>
 #include <coocox.h>
 #include "AppConfig.h"
 

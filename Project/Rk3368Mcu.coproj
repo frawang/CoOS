@@ -152,7 +152,7 @@
     <File name="App/ddr.c" path="../App/ddr.c" type="1"/>
     <File name="Peripherals/RK/Src/cru.c" path="../Peripherals/Peri.rk/Src/cru.c" type="1"/>
     <File name="Peripherals/Boot" path="" type="2"/>
-    <File name="Peripherals/RK/Src/ddr_memSet.s" path="../Peripherals/Peri.rk/Src/ddr_memSet.s" type="1"/>
+    <File name="Peripherals/RK/Src/ddr_memSet.S" path="../Peripherals/Peri.rk/Src/ddr_memSet.S" type="1"/>
     <File name="CoOS/kernel/coocox.h" path="../CoOS/kernel/coocox.h" type="1"/>
   </Files>
 </Project>
