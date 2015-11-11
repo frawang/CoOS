@@ -461,7 +461,7 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         #define DDR3_tRFC_8Gb        (350)
         #define DDR3_tRTW            (2)	/*register min valid value*/
         #define DDR3_tRAS            (37)
-        #define DDR3_tRRD            (10)
+        #define DDR3_tRRD            (7)
         #define DDR3_tRTP            (7)
         #define DDR3_tWR             (15)
         #define DDR3_tWTR            (7)
@@ -607,7 +607,7 @@ static uint32 ddr_get_parameter(uint32 nMHz)
          *        max(4nCK, 6ns), DDR3-1333(1K), DDR3-1600(1K)
          *
          */
-        tmp = ((DDR3_tRRD * nMHz + 999) / 1000);
+        tmp = ((DDR3_tRRD * nMHz + (nMHz >> 1) + 999) / 1000);
         if (tmp < 4) {
             tmp = 4;
         }
@@ -1041,11 +1041,11 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         #define LPDDR3_tMRD            (7)   //tCK
         #define LPDDR3_tRFC_8Gb        (210)  //ns
         #define LPDDR3_tRFC_4Gb        (130)  //ns
-        #define LPDDR3_tRPpb_8_BANK             (24)  //ns
+        #define LPDDR3_tRPpb_8_BANK             (18)  //ns
         #define LPDDR3_tRPab_SUB_tRPpb_8_BANK   (3)   //ns
         #define LPDDR3_tRTW          (1)   //tCK register min valid value
         #define LPDDR3_tRAS          (42)  //ns
-        #define LPDDR3_tRCD          (24)  //ns
+        #define LPDDR3_tRCD          (18)  //ns
         #define LPDDR3_tRRD          (10)  //ns
         #define LPDDR3_tRTP          (7)   //ns
         #define LPDDR3_tWR           (15)  //ns
@@ -1054,7 +1054,7 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         #define LPDDR3_tXPDLL        (0)
         #define LPDDR3_tZQCS         (90) //ns
         #define LPDDR3_tZQCSI        (0)
-        #define LPDDR3_tDQS          (4)
+        #define LPDDR3_tDQS          (1)
         #define LPDDR3_tCKSRE        (2)  //tCK
         #define LPDDR3_tCKSRX        (2)  //tCK
         #define LPDDR3_tCKE          (3)  //tCK
@@ -1069,7 +1069,7 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         #define LPDDR3_tDQSCK_MAX    (3)  //tCK
         #define LPDDR3_tDQSCK_MIN    (0)  //tCK
         #define LPDDR3_tDQSS         (1)  //tCK
-
+		#define LPDDR3_tDQSCK		 (5)  //5.5ns
         uint32 trp_tmp;
         uint32 trcd_tmp;
         uint32 tras_tmp;
@@ -1186,7 +1186,7 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         /*
          * tRFC, 130ns(4Gb) 210ns(>4Gb)
          */
-        if(1)//(p_ddr_reg->ddr_capability_per_die > 0x20000000)   // >4Gb
+        if(p_ddr_reg->ddr_capability_per_die > 0x20000000)   // >4Gb
         {
             p_pctl_timing->trfc = (LPDDR3_tRFC_8Gb*nMHz+999)/1000;
             /*
@@ -1290,8 +1290,9 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         /*
          * RdToWr=(cl+2-cwl)
          */
-        p_pctl_timing->trtw = (cl+2-cwl);//LPDDR2_tRTW;
-        p_noc_timing->b.RdToWr = (cl+2-cwl);
+		tmp =((LPDDR3_tDQSCK*nMHz+(nMHz>>1)+999)/1000);
+        p_pctl_timing->trtw = tmp;
+        p_noc_timing->b.RdToWr = tmp;
         p_pctl_timing->tal = al;
         p_pctl_timing->tcl = cl;
         p_pctl_timing->tcwl = cwl;
@@ -1341,7 +1342,14 @@ static uint32 ddr_get_parameter(uint32 nMHz)
         /*
          * tDQS,
          */
-        p_pctl_timing->tdqs = LPDDR3_tDQS;
+		if(nMHz <= 733)
+		{
+			p_pctl_timing->tdqs = LPDDR3_tDQS;
+		}
+		else
+		{
+			p_pctl_timing->tdqs = LPDDR3_tDQS + 1;
+		}
         /*
          * tCKSRE=tCPDED, 2 tCK
          */
@@ -1937,7 +1945,15 @@ int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type, u32 addr_
 	ddr_reg.mem_type = ((pPMUGRF_Reg->PMUGRF_OS_REG[2] >>13)&0x7);
 	loops_per_us = ddr_get_MCU_freq();
 
-	die = 1 << (READ_BW_INFO() - READ_DIE_BW_INFO());
+	/* before loader v1.16 didn't detect dram bw info */
+	if (READ_VERSION_INFO() < 16) {
+		if (ddr_reg.mem_type == DDR3)
+			die = 1 << (READ_BW_INFO() - 1);
+		else
+			die = 1;
+	} else {
+		die = 1 << (READ_BW_INFO() - READ_DIE_BW_INFO());
+	}
 	ddr_reg.ddr_capability_per_die = ddr_get_cap(0) / die;
 	ddr_reg.ddr_addr_mcu_el3 = addr_mcu_el3 + 0x60000000;
     /*

@@ -719,7 +719,7 @@ typedef volatile struct DDRPHY_REG_Tag {
 #define READ_CS1_ROW_INFO()  (13+(((pPMUGRF_Reg->PMUGRF_OS_REG[2])>>4)&0x3))
 #define READ_BW_INFO()   (2>>(((pPMUGRF_Reg->PMUGRF_OS_REG[2])&0xc)>>2))    //代码中 0->8bit 1->16bit 2->32bit  与grf中定义相反
 #define READ_DIE_BW_INFO()   (2>>((pPMUGRF_Reg->PMUGRF_OS_REG[2])&0x3))
-
+#define READ_VERSION_INFO()	((pPMUGRF_Reg->PMUGRF_OS_REG[3]) & 0xff)
 /***********************************
  * DDR3 define
  ***********************************/
