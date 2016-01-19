@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+V2.13  20160119  Support A53 to control jtagmux task via mailbox message
+V2.12  20151111  RK3368 DDR: optimizing DDR timing
 V2.11  20150910  Adding config ddr timing(sr_idle,drv,odt...) function through dts
 V2.10  20150825  Optimized TSADC function and changed DDR frequency conversion scheme
 V2.09  20150811  Fixed hdim display error when ddr changing freq, and vector table error
