@@ -47,6 +47,7 @@ MboxReg *pMbox = (MboxReg *)MBOX_BASE;
 MboxBuf *pBuf  = (MboxBuf *)(SRAM_BASE + SRAM_SIZE - SZ_4K);
 
 extern OS_EventID suspend_mail;
+extern int jtag_mux_en;
 
 extern void *memset(void *s, int ch, size_t n);
 extern void *memcpy(void *dest, const void *src, size_t n);
@@ -115,6 +116,24 @@ static void Mbox_HandleSysCmd(MboxMsg *pMsg)
 		//ResumeMcuFromSuspendState();
 		pBuf = (volatile struct __packed *)pMsg->B2A_Buf;
 		pBuf->Status = SCPI_SUCCESS;
+		Mbox_CmdDone(pMsg);
+		break;
+	}
+
+	case SCPI_SYS_SET_JTAGMUX_ON_OFF: {
+		volatile struct __packed1 {
+			u32 enable;
+		} *rx_buf;
+
+		volatile struct __packed2 {
+			u32 status;
+		} *tx_buf;
+
+		rx_buf = (volatile struct __packed1 *)pMsg->A2B_Buf;
+		tx_buf = (volatile struct __packed2 *)pMsg->B2A_Buf;
+
+		jtag_mux_en = rx_buf->enable;
+		tx_buf->status = SCPI_SUCCESS;
 		Mbox_CmdDone(pMsg);
 		break;
 	}

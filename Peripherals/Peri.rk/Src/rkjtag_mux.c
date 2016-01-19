@@ -5,20 +5,24 @@
 OS_STK   task_jtagmux_stk[TASK_STK_SIZE];	 	/*!< Stack of 'task_ddr' task.	*/
 OS_STK   task_suspend_stk[TASK_STK_SIZE];
 
+int jtag_mux_en = 0;
 
 void task_jtagmux(void *pdata)
 {
     U32 *p;
     p = (U32 *)0x400c0050;
 
+#if 0
     /* no sdcard*/
     if (*p & 0x1) {
         /*mcu jtag iomux*/
         pGRF_Reg->GRF_GPIO_IOMUX[1].GPIOB_IOMUX = (0xf<<(2+16)) | (0xa<<2);
     }
+#endif
 
     for (;;) {
-        if (*p & 0x1) {
+        /* the value of jtag_mux_en is passed from Linux via mailbox */
+        if ((jtag_mux_en == 1) && (*p & 0x1)) {
             /*no sdcard and iomux is sdmmc*/
             if((pGRF_Reg->GRF_GPIO_IOMUX[1].GPIOA_IOMUX & (0x3<<10)) == (0x1<<10))
             {

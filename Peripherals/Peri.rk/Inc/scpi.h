@@ -17,7 +17,7 @@
  */
 
 /* SCPI version, always in line with master CPU */
-#define SCPI_VERSION        0x01000001  //version: 1.0.0.1
+#define SCPI_VERSION        0x01000002  //version: 1.0.0.2
 
 typedef enum scpi_error_codes {
 	SCPI_SUCCESS = 0, /* Success */
@@ -61,6 +61,7 @@ typedef enum scpi_sys_cmd {
 	SCPISYS_REFRESH_MCU_FREQ,
 	SCPI_SYS_SET_MCU_STATE_SUSPEND,
 	SCPI_SYS_SET_MCU_STATE_RESUME,
+	SCPI_SYS_SET_JTAGMUX_ON_OFF,
 } Scpi_SysCmd;
 
 typedef enum scpi_std_cmd {
