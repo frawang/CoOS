@@ -1796,17 +1796,26 @@ rewait_vbank:
         {
             *(uint32 *)VOP_INTR_CLEAR = VOP_CLEAR_FLAG1;
             ddr_delayus(1);
-            while(((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG1_STATUS)==0);
+            while((((*(volatile uint32*)VOP_SYS_CTRL) & VOP_STAND_BY) == 0) &&
+				   (((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG1_STATUS) == 0))
+				continue;
             //*(uint32 *)VOP_INTR_CLEAR = VOP_CLEAR_FLAG0;
             ntf_cpu_into_wfe();
-            if(((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG0_STATUS))
+            if((((*(volatile uint32*)VOP_SYS_CTRL) & VOP_STAND_BY) == 0) &&
+	       ((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG0_STATUS))
             {
 				/*wait cpu wfe timeout*/
 				//printf("MCU:wait wfe tout\n\r");
 				ntf_cpu_exit_wfe();
 				goto rewait_vbank;
             }
-			while(((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG0_STATUS)==0);
+			while ((((*(volatile uint32*)VOP_SYS_CTRL) & VOP_STAND_BY) == 0) &&
+					(((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG0_STATUS)==0))
+				continue;
+        }
+        else
+        {
+			ntf_cpu_into_wfe();
         }
     }
     else

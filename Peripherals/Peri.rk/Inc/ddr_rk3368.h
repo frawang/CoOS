@@ -1021,6 +1021,8 @@ typedef struct BACKUP_REG_Tag {
 #define VOP_CLEAR_FLAG1     ((0x1<<(16+4)) | (0x1<<4))
 #define VOP_FLAG0_STATUS    (1<<19)
 #define VOP_FLAG1_STATUS    (1<<20)
+#define VOP_STAND_BY		(1<<22)
+#define VOP_SYS_CTRL			(VOP_BASE_ADDR + 0x8)
 #define VOP_LINE_FLAG           (VOP_BASE_ADDR + 0x20)
 #define VOP_INTR_CLEAR          (VOP_BASE_ADDR + 0x28)
 #define VOP_INTR_STATUS         (VOP_BASE_ADDR + 0x2c)
