@@ -51,6 +51,8 @@
 #include "io-rk3368.h"
 #elif RK3366
 #include "io-rk3366.h"
+#elif RK3399
+#include "io-rk3399.h"
 #else
 
 #endif
@@ -63,6 +65,24 @@
 #define writeb(v, c)	((*(vu8 *) (c)) = (v))
 #define writew(v, c)	((*(vu16 *) (c)) = (v))
 #define writel(v, c)	((*(vu32 *) (c)) = (v))
+
+#ifdef RK3399
+/* set the mask of m0 interrupt arbiter */
+static inline void M0_INT_ARB_SET_MASK(int IRQn)
+{
+	u32 val = readl(M0_INT_ARB_MASKN(IRQn/8));
+	val |= 1 << (IRQn % 8);
+	writel(val, M0_INT_ARB_MASKN(IRQn/8));
+}
+
+/* get the flag of m0 interrupt arbiter */
+static inline u32 M0_INT_ARB_GET_FLAG(int IRQ)
+{
+	u32 val = (readl(M0_INT_ARB_FLAGN(IRQ))) & 0xff;
+
+	return val;
+}
+#endif
 
 #ifdef __cplusplus
 }

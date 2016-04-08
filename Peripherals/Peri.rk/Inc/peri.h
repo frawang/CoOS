@@ -58,10 +58,16 @@ typedef enum IRQn {
 	MBOX0_IRQn		= 138,
 #elif RK3366
 	MBOX0_IRQn		= 128,
+#elif RK3399
+	MBOX0_IRQn		= 140,
 #else
 
 #endif
 } IRQn_Type;
+
+#ifdef RK3399
+#define IRQ_MBOX		17
+#endif
 
 #define __NVIC_PRIO_BITS	4
 

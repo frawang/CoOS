@@ -349,7 +349,11 @@ StatusType CoUdelay(U32 usec)
 
 	if (1 == usec) {
 		i = 1;
+#ifdef BUILD_M3
 		asm volatile (".align 4; 1: subs %0, %0, #1; bne 1b;":"+r" (i));
+#elif BUILD_M0
+		asm volatile (".align 4; 1: sub %0, %0, #1; cmp %0, #0; bne 1b;":"+r" (i));
+#endif
 		return E_OK;
 	}
 

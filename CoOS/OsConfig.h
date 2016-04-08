@@ -46,7 +46,11 @@
 Defines chip type,cortex-m3(1),cortex-m0(2)      
 cortem-m4 without FPU(1), cortem-m4 with FPU(3)
 */
+#ifdef BUILD_M3
 #define CFG_CHIP_TYPE           (1)
+#elif BUILD_M0
+#define CFG_CHIP_TYPE           (2)
+#endif
 
 /*!< 
 Defines the lowest priority that be assigned.       

@@ -24,6 +24,12 @@ void task_jtagmux(void *pdata)
 #endif
 
 	for (;;) {
+#if defined(RK3399) && defined(PMU_M0)
+		/* for rk3399 pmu m0, just need do set iomux */
+		set_mcujtag_iomux();
+		goto DELAY;
+#endif
+
 #ifdef RK3368
 		if (jtag_mux_en == 1) { /* controled by AP */
 #endif
@@ -42,6 +48,10 @@ void task_jtagmux(void *pdata)
 #ifdef RK3368
 		}
 #endif /* endif if jtag_mux_en ... */
+
+#if defined(RK3399) && defined(PMU_M0)
+DELAY:
+#endif
 		/*delay 3 second*/
 		CoTimeDelay(0,0,3,0);
 	}

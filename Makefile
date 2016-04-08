@@ -26,7 +26,7 @@ CROSS_COMPILE := ../prebuilts/gcc-arm-none-eabi-4_8-2014q3/bin/arm-none-eabi-
 # Build architecture
 ARCH 			?= cortex-m3
 # Build platform
-PLATFORMS		:= "Rk3368Mcu,Rk3366Mcu"
+PLATFORMS		:= "Rk3368Mcu,Rk3366Mcu,Rk3399Mcu,Rk3399McuPer"
 DEFAULT_PLAT		:= Rk3368Mcu
 PLAT			?= ${DEFAULT_PLAT}
 HELP_PLATFORMS	:= $(shell echo ${PLATFORMS} | sed 's/ /|/g')
@@ -34,14 +34,23 @@ HELP_PLATFORMS	:= $(shell echo ${PLATFORMS} | sed 's/ /|/g')
 # Build ARCH
 ifeq (${PLAT},Rk3368Mcu)
 ARCH 			:= cortex-m3
-LOCAL_CFLAGS		+= -DRK3368 -DCPU_FREQ=96
+LOCAL_CFLAGS		+= -DRK3368 -DCPU_FREQ=96 -DBUILD_M3
 endif
 
 ifeq (${PLAT},Rk3366Mcu)
 ARCH 			:= cortex-m3
-LOCAL_CFLAGS		+= -DRK3366 -DCPU_FREQ=96
+LOCAL_CFLAGS		+= -DRK3366 -DCPU_FREQ=96 -DBUILD_M3
 endif
 
+ifeq (${PLAT},Rk3399Mcu)
+ARCH 			:= cortex-m0
+LOCAL_CFLAGS		+= -DRK3399 -DPMU_M0 -DCPU_FREQ=150 -DBUILD_M0
+endif
+
+ifeq (${PLAT},Rk3399McuPer)
+ARCH                    := cortex-m0
+LOCAL_CFLAGS            += -DRK3399 -DPERIL_M0 -DCPU_FREQ=300 -DBUILD_M0
+endif
 
 # Flag used to indicate if ASM_ASSERTION should be enabled for the build.
 # This defaults to being present in DEBUG builds only.
@@ -70,6 +79,9 @@ VER_BIN_PREFIX		:= rk3368bl30_
 endif
 ifeq (${PLAT},Rk3366Mcu)
 VER_BIN_PREFIX		:= rk3366bl30_
+endif
+ifeq (${PLAT},Rk3399Mcu)
+VER_BIN_PREFIX          := rk3399bl30_
 endif
 
 VER = 

@@ -117,6 +117,10 @@ void (* const g_pfnVectors[])(void) =
   Mbox_IRQHandler,		/*!< 129: Mbox0                               */
   Mbox_IRQHandler,		/*!< 130: Mbox0                               */
   Mbox_IRQHandler,		/*!< 131: Mbox0                               */
+#elif RK3399
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0, Mbox_IRQHandler,	/*!< 17: Mbox                                 */
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0
 #else
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -148,6 +152,7 @@ void Default_Reset_Handler(void)
   
   /* Zero fill the bss segment.  This is done with inline assembly since this
      will clear the value of pulDest if it is not kept in a register. */
+#ifdef BUILD_M3
   __asm("  ldr     r0, =_sbss\n"
         "  ldr     r1, =_ebss\n"
         "  mov     r2, #0\n"
@@ -157,7 +162,21 @@ void Default_Reset_Handler(void)
         "    it      lt\n"
         "    strlt   r2, [r0], #4\n"
         "    blt     zero_loop");
-  
+#elif BUILD_M0
+  __asm("  ldr    r0, =_sbss  \n"
+        "  ldr    r1, =_ebss  \n"
+        "  mov    r2, #0      \n"
+        "  b      zero_loop   \n"
+        "  .thumb_func        \n"
+        "fill_zero:           \n"
+        "  str      r2, [r0]  \n"
+        "  add      r0, r0, #4\n"
+        "  .thumb_func        \n"
+        "zero_loop:           \n"
+        "  cmp		r0, r1    \n"
+        "  bcc		fill_zero  ");
+#endif
+
   /* Zero sram segment. */
   pulDest = &__ssram_code_text;
   while (sram_size > 0) {
@@ -217,6 +236,7 @@ static void Default_Handler(void)
     volatile register U32 stack;
 
     /* First, acquire the stack addr of the exception scene */
+#ifdef BUILD_M3
     __asm volatile
     (
         "TST    LR, #4          \n"
@@ -226,6 +246,22 @@ static void Default_Handler(void)
         "MOV    %0, R0          \n"
         : "=r" (stack)
     );
+#elif BUILD_M0
+    __asm volatile
+    (
+        "  MOV    R7, #4          \n"
+        "  MOV    R0, LR          \n"
+        "  TST    R0, R7          \n"
+        "  BNE    NE_OPT          \n"
+        "  MRS    R0, MSP         \n"
+        "  B      END_OPT         \n"
+        "NE_OPT:                  \n"
+        "  MRS    R0, PSP         \n"
+        "END_OPT:                 \n"
+        "  MOV    %0, R0          \n"
+        : "=r" (stack)
+    );
+#endif
 
     /* Second, dump stack regs information */
     dump_regs_info((U32 *)stack);

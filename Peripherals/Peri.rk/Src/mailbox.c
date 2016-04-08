@@ -172,6 +172,9 @@ void Mbox_IRQHandler(void)
 
     CoEnterISR();                 /* Tell CooCox that we are starting an ISR. */
 
+#ifdef RK3399
+mbox_isr:
+#endif
     for(id = 0; id < NUM_CHANS; id++) {
     	pending = pMbox->A2B_Status;
     	if (!(pending & (1 << id)))
@@ -198,15 +201,26 @@ void Mbox_IRQHandler(void)
     		Mbox_HandleSysCmd(&g_msg[id]);
     	} else {
     		if (isr_PostMail(mboxs[sid], &g_msg[id]) != E_OK) {
-                printf("[MCU]MBOX PostMail Failed, SID=%d, CMD=%d\n\r", sid, cmd);
+                printf("\n\r[MCU]MBOX PostMail Failed, SID=%d, CMD=%d\n\r", sid, cmd);
                 * ((U32 *)g_msg[id].B2A_Buf) = SCPI_ERR_SUPPORT;
                 Mbox_CmdDone(&g_msg[id]);
     		}
     	}
-	
+#ifndef RK3399
         /* clear interrupt pending bit */
         NVIC_ClearPendingIRQ(MBOX0_IRQn + id);
+#endif
     }
+
+#ifdef RK3399
+	for (id = 0; id < NUM_CHANS; id++) {
+		pending = pMbox->A2B_Status;
+		if (pending & (1 << id))
+			goto mbox_isr;
+	}
+	/* clear interrupt pending bit */
+	NVIC_ClearPendingIRQ(IRQ_MBOX);
+#endif
 
 	CoExitISR();
 }
@@ -231,8 +245,14 @@ int Mbox_Init(void)
 	 	if(flags_chan[id] == E_CREATE_FAIL)
 	 		return 	E_CREATE_FAIL;
 
+#ifdef RK3399
+		/* set interrupt arbiter mask */
+		M0_INT_ARB_SET_MASK(MBOX0_IRQn + id);
+		NVIC_EnableIRQ(IRQ_MBOX);
+#else
 	 	/* enable interrupt */
 	 	NVIC_EnableIRQ(MBOX0_IRQn + id);
+#endif
 	}
 
 	return E_OK;
