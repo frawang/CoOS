@@ -47,31 +47,31 @@ static int tsadc_get_temp_code(void)
 
     /* get temperature from tsadc */
     /* power up, channel 0*/
-    writel(0x18, (TSADC_BASE_ADDR + TSADCV2_USER_CON));
+    writel(0x18, (TSADC_BASE + TSADCV2_USER_CON));
     dsb();
     CoUdelay(g_clk_cycle * 2);
 
-    writel(0x38, (TSADC_BASE_ADDR + TSADCV2_USER_CON));
+    writel(0x38, (TSADC_BASE + TSADCV2_USER_CON));
     dsb();
     CoUdelay(g_clk_cycle * 13);
 
     for (i=0; i<50; i++) { /* try 50 times */
         CoUdelay(g_clk_cycle);
-        adc_pd = readl(TSADC_BASE_ADDR + TSADCV2_INT_PD);
+        adc_pd = readl(TSADC_BASE + TSADCV2_INT_PD);
         if ((adc_pd & 0x100) == 0x100) {
             CoUdelay(1);
             /*read adc data*/
-            g_adc_data = readl(TSADC_BASE_ADDR + TSADCV2_DATA(0));
+            g_adc_data = readl(TSADC_BASE + TSADCV2_DATA(0));
 
             /*clear eoc inter*/
-            writel(0x100, (TSADC_BASE_ADDR + TSADCV2_INT_PD));
+            writel(0x100, (TSADC_BASE + TSADCV2_INT_PD));
             dsb();
             break;
         }
     }
 
     /*power down, channel 0*/
-    writel(0x0, (TSADC_BASE_ADDR + TSADCV2_USER_CON));
+    writel(0x0, (TSADC_BASE + TSADCV2_USER_CON));
     
     /* recover A53 PLL to normal mode */
     writel(0x03000100, 0x4076000c);

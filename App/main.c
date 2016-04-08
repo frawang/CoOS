@@ -15,12 +15,16 @@ void task_init(void *pdata)
 		printf("[MCU]Init mailbox failed\n\r");
 
 	/* Applications initialize */
+#ifdef RK3368
 	Create_DdrTask();
-	Create_JtagMux_Task();
-	creat_suspend_task();
 #ifdef CFG_TSADC
     create_tsadc_task();
 #endif
+	creat_suspend_task();
+#endif
+
+	Create_JtagMux_Task();
+
 	CoExitTask();	 /*!< Delete 'task_init' task. 	*/
 }
 

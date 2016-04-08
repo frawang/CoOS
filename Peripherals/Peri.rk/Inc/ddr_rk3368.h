@@ -703,12 +703,12 @@ typedef volatile struct DDRPHY_REG_Tag {
     volatile uint32 PHY_REGff;              //calibrationg done
 } DDRPHY_REG_T, *pDDRPHY_REG_T;
 
-#define pCRU_Reg               ((pCRU_REG)CRU_BASE_ADDR)
-#define pGRF_Reg               ((pREG_FILE)GRF_BASE_ADDR)
-#define pPMUGRF_Reg             ((pPMUREG_FILE)PMU_GRF_BASE_ADDR)
-#define pPMU_Reg                ((pPMU_FILE)PMU_BASE_ADDR)
-#define pDDR_Reg               ((pDDR_REG_T)DDR_PCTL_BASE_ADDR)
-#define pPHY_Reg               ((pDDRPHY_REG_T)(DDR_PHY_BASE_ADDR))
+#define pCRU_Reg               ((pCRU_REG)CRU_BASE)
+#define pGRF_Reg               ((pREG_FILE)GRF_BASE)
+#define pPMUGRF_Reg             ((pPMUREG_FILE)PMU_GRF_BASE)
+#define pPMU_Reg                ((pPMU_FILE)PMU_BASE)
+#define pDDR_Reg               ((pDDR_REG_T)DDR_PCTL_BASE)
+#define pPHY_Reg               ((pDDRPHY_REG_T)(DDR_PHY_BASE))
 #define SysSrv_DdrTiming       (SERVICE_BUS_ADDR+0xc)
 //#define PMU_PWEDN_ST		(RK_PMU_VIRT + 0x8)
 
@@ -1022,14 +1022,14 @@ typedef struct BACKUP_REG_Tag {
 #define VOP_FLAG0_STATUS    (1<<19)
 #define VOP_FLAG1_STATUS    (1<<20)
 #define VOP_STAND_BY		(1<<22)
-#define VOP_SYS_CTRL			(VOP_BASE_ADDR + 0x8)
-#define VOP_LINE_FLAG           (VOP_BASE_ADDR + 0x20)
-#define VOP_INTR_CLEAR          (VOP_BASE_ADDR + 0x28)
-#define VOP_INTR_STATUS         (VOP_BASE_ADDR + 0x2c)
-#define VOP_WIN0_CTRL0          (VOP_BASE_ADDR + 0x30)
-#define VOP_WIN1_CTRL0          (VOP_BASE_ADDR + 0x70)
-#define VOP_WIN2_CTRL0          (VOP_BASE_ADDR + 0xb0)
-#define VOP_WIN3_CTRL0          (VOP_BASE_ADDR + 0x100)
+#define VOP_SYS_CTRL			(VOP_BASE + 0x8)
+#define VOP_LINE_FLAG           (VOP_BASE + 0x20)
+#define VOP_INTR_CLEAR          (VOP_BASE + 0x28)
+#define VOP_INTR_STATUS         (VOP_BASE + 0x2c)
+#define VOP_WIN0_CTRL0          (VOP_BASE + 0x30)
+#define VOP_WIN1_CTRL0          (VOP_BASE + 0x70)
+#define VOP_WIN2_CTRL0          (VOP_BASE + 0xb0)
+#define VOP_WIN3_CTRL0          (VOP_BASE + 0x100)
 
 #define LPJ_100MHZ  999456UL
 #define GPIO0_D4_H   //do{*(uint32*)GPIO0_BASE_ADDR |= (0x1<<28);}while(0)

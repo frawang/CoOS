@@ -1535,14 +1535,14 @@ static void wait_cpus_into_wfe(void)
 	cur_cpu = 1;/*default cpu 0 response fiq*/
 	cpus = (~cur_cpu) & 0xff;
 /*get power on cpu id*/
-	power_st = mmio_read_32(PMU_BASE_ADDR + RK3368_PMU_PWRDN_ST);
+	power_st = mmio_read_32(PMU_BASE + RK3368_PMU_PWRDN_ST);
 	power_msk = (power_st & 0xf) | ((power_st>>(5-4))&0xf0);
 	power_msk = (~power_msk) & 0xff;
 /*exclude current cpu*/
 	power_msk &= cpus;
 /*standby wfe cluster l[2:5],cluster big[12:15]*/
 	wfe_msk = ((power_msk & 0xf) << 2) | ((power_msk & 0xf0) << (12-4));
-	while((mmio_read_32(PMU_BASE_ADDR + RK3368_PMU_CORE_PWR_ST) & wfe_msk) != wfe_msk) {
+	while((mmio_read_32(PMU_BASE + RK3368_PMU_CORE_PWR_ST) & wfe_msk) != wfe_msk) {
 		ddr_delayus(1);
 	}
 }
@@ -1593,12 +1593,12 @@ sramlocalfunc static void idle_port(void)
 					dsi_pwr_off();
 				}
 				/*get mmu status if 1, mmu is stall*/
-			   if( *(volatile uint32 *)(VOP_BASE_ADDR + 0x304) & 0x1)
+			   if( *(volatile uint32 *)(VOP_BASE + 0x304) & 0x1)
 			   {
 				   vop_status = 2;
-				   mmu_status = ((*(volatile uint32*)(VOP_BASE_ADDR+0x304)) >> 2) & 0x1;
-				   *(volatile uint32 *)(VOP_BASE_ADDR + 0x308) = 0x2;//stall mmu
-				   while(((*(volatile uint32*)(VOP_BASE_ADDR+0x304)) & (0x1<<2)) == 0);
+				   mmu_status = ((*(volatile uint32*)(VOP_BASE+0x304)) >> 2) & 0x1;
+				   *(volatile uint32 *)(VOP_BASE + 0x308) = 0x2;//stall mmu
+				   while(((*(volatile uint32*)(VOP_BASE+0x304)) & (0x1<<2)) == 0);
 			   }
 				if(id_mipi_dis != SCREEN_HDMI)
 				{
@@ -1640,8 +1640,8 @@ sramlocalfunc static void deidle_port(void)
 			//pCRU_Reg->CRU_CLKSEL_CON[20] = ((((pCRU_Reg->CRU_CLKSEL_CON[20] & 0xff)+1)/2)-1) | (0xff<<16);
 			if((mmu_status == 0) && (vop_status == 2))
 			{
-				*(volatile uint32 *)(VOP_BASE_ADDR + 0x308) = 0x3;//disable stall mmu
-				while(((*(volatile uint32*)(VOP_BASE_ADDR+0x304)) & (0x1<<2)) != 0);
+				*(volatile uint32 *)(VOP_BASE + 0x308) = 0x3;//disable stall mmu
+				while(((*(volatile uint32*)(VOP_BASE+0x304)) & (0x1<<2)) != 0);
 			}
 			if(id_mipi_dis == SCREEN_MIPI)
 			{
@@ -2007,5 +2007,3 @@ int rk3368_ddr_init(U32 dram_speed_bin, uint32 freq, uint32 lcdc_type, u32 addr_
 
 	return 0;
 }
-
-

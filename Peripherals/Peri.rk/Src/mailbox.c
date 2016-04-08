@@ -47,7 +47,10 @@ MboxReg *pMbox = (MboxReg *)MBOX_BASE;
 MboxBuf *pBuf  = (MboxBuf *)(SRAM_BASE + SRAM_SIZE - SZ_4K);
 
 extern OS_EventID suspend_mail;
+
+#ifdef RK3368
 extern int jtag_mux_en;
+#endif
 
 extern void *memset(void *s, int ch, size_t n);
 extern void *memcpy(void *dest, const void *src, size_t n);
@@ -121,18 +124,19 @@ static void Mbox_HandleSysCmd(MboxMsg *pMsg)
 	}
 
 	case SCPI_SYS_SET_JTAGMUX_ON_OFF: {
+#ifdef RK3368
 		volatile struct __packed1 {
 			u32 enable;
 		} *rx_buf;
 
+		rx_buf = (volatile struct __packed1 *)pMsg->A2B_Buf;
+		jtag_mux_en = rx_buf->enable;
+#endif
 		volatile struct __packed2 {
 			u32 status;
 		} *tx_buf;
 
-		rx_buf = (volatile struct __packed1 *)pMsg->A2B_Buf;
 		tx_buf = (volatile struct __packed2 *)pMsg->B2A_Buf;
-
-		jtag_mux_en = rx_buf->enable;
 		tx_buf->status = SCPI_SUCCESS;
 		Mbox_CmdDone(pMsg);
 		break;
@@ -163,17 +167,17 @@ void Mbox_IRQHandler(void)
 {
 	MboxId id;
 	U32 pending;
+	Scpi_ClientId sid;
+	Scpi_SysCmd cmd;
 
     CoEnterISR();                 /* Tell CooCox that we are starting an ISR. */
-    pending = pMbox->A2B_Status;
 
     for(id = 0; id < NUM_CHANS; id++) {
-    	//MboxMsg msg;
-    	Scpi_ClientId sid;
-    	Scpi_SysCmd cmd;
+    	pending = pMbox->A2B_Status;
     	if (!(pending & (1 << id)))
     		continue;
 
+    	/* clear interrupt status */
     	pMbox->A2B_Status = 1 << id;
 
     	g_msg[id].Cmd = pMbox->A2B[id].Cmd;
@@ -215,12 +219,12 @@ int Mbox_Init(void)
 	pMbox->A2B_Inten = (1 << NUM_CHANS) - 1;
 
 	for (id = 0; id < SCPI_MAX; id++) {
-
-		/* Create Mboxs */
+		/* Create CoOS Mboxs */
 		mboxs[id] = CoCreateMbox(EVENT_SORT_TYPE_FIFO);
 	 	if(mboxs[id] == E_CREATE_FAIL)
 			return 	E_CREATE_FAIL;
 	}
+
 	for (id = 0; id < NUM_CHANS; id++) {
 	 	/* Create channel flags */
 	 	flags_chan[id] = CoCreateFlag(Co_TRUE, 1);

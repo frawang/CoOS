@@ -9,6 +9,10 @@
 # GCC cross compiation tool: gcc-arm-none-eabi-4_8-2014q3
 #
 
+ifneq ($(wildcard .config),)
+include .config
+endif
+
 #
 # Default values for build configurations
 #
@@ -20,11 +24,24 @@ DEBUG			:= 1
 # Cross Compile
 CROSS_COMPILE := ../prebuilts/gcc-arm-none-eabi-4_8-2014q3/bin/arm-none-eabi-
 # Build architecture
-ARCH 			:= cortex-m3
+ARCH 			?= cortex-m3
 # Build platform
-PLATFORMS		:= "Rk3368Mcu"
+PLATFORMS		:= "Rk3368Mcu,Rk3366Mcu"
 DEFAULT_PLAT		:= Rk3368Mcu
-PLAT			:= ${DEFAULT_PLAT}
+PLAT			?= ${DEFAULT_PLAT}
+HELP_PLATFORMS	:= $(shell echo ${PLATFORMS} | sed 's/ /|/g')
+
+# Build ARCH
+ifeq (${PLAT},Rk3368Mcu)
+ARCH 			:= cortex-m3
+LOCAL_CFLAGS		+= -DRK3368 -DCPU_FREQ=96
+endif
+
+ifeq (${PLAT},Rk3366Mcu)
+ARCH 			:= cortex-m3
+LOCAL_CFLAGS		+= -DRK3366 -DCPU_FREQ=96
+endif
+
 
 # Flag used to indicate if ASM_ASSERTION should be enabled for the build.
 # This defaults to being present in DEBUG builds only.
@@ -48,7 +65,13 @@ BUILD_BASE		:= ./Project
 BUILD_PLAT		:= ${BUILD_BASE}/${PLAT}/${BUILD_TYPE}
 
 VER_BIN_DIR		:= ./Bin/RK33
+ifeq (${PLAT},Rk3368Mcu)
 VER_BIN_PREFIX		:= rk3368bl30_
+endif
+ifeq (${PLAT},Rk3366Mcu)
+VER_BIN_PREFIX		:= rk3366bl30_
+endif
+
 VER = 
 
 # Convenience function for adding build definitions
@@ -70,11 +93,13 @@ ifeq (${PLAT},)
 endif
 ifeq ($(findstring ${PLAT},${PLATFORMS}),)
   $(error "Error: Invalid platform. The following platforms are available: ${PLATFORMS}")
+else
+  $(shell echo "PLAT=${PLAT}" > .config)
 endif
 
 # All PHONY definition
-.PHONY: all clean cortex_m3 msg_start version
-all: msg_start cortex_m3
+.PHONY: all clean distclean ${ARCH} msg_start version
+all: msg_start ${ARCH}
 
 .SUFFIXES:
 
@@ -112,14 +137,18 @@ PER_SOURCES	:= Peripherals/Boot/startup.c			\
 		Peripherals/Peri.rk/Src/sram.c 			\
 		Peripherals/Peri.rk/Src/irq.c			\
 		Peripherals/Peri.rk/Src/mailbox.c 		\
-		Peripherals/Peri.rk/Src/ddr_memSet.S		\
 		Peripherals/Peri.rk/Src/rkjtag_mux.c		\
-		Peripherals/Peri.rk/Src/cru.c 			\
-		Peripherals/Peri.rk/Src/ddr_rk3368.c
+		Peripherals/Peri.rk/Src/cru.c
 
-APP_SOURCES	:= App/main.c					\
-		App/tsadc.c 					\
-		App/ddr.c
+APP_SOURCES	:= App/main.c
+
+ifeq (${PLAT},Rk3368Mcu)
+PER_SOURCES	+= Peripherals/Peri.rk/Src/ddr_memSet.S 	\
+		   Peripherals/Peri.rk/Src/ddr_rk3368.c
+
+APP_SOURCES	+= App/tsadc.c					\
+		   App/ddr.c
+endif
 
 # Process DEBUG flag
 $(eval $(call assert_boolean,DEBUG))
@@ -153,7 +182,7 @@ $(eval OBJ := $(1)/$(patsubst %.c,%.o,$(notdir $(2))))
 
 $(OBJ) : $(2)
 	@echo "  CC      $$<"
-	$$(Q)$$(CC) $$(CFLAGS) $$(INCLUDES) -c $$< -o $$@
+	$$(Q)$$(CC) $$(CFLAGS) $$(LOCAL_CFLAGS) $$(INCLUDES) -c $$< -o $$@
 endef
 
 define MAKE_S
@@ -161,7 +190,7 @@ $(eval OBJ := $(1)/$(patsubst %.S,%.o,$(notdir $(2))))
 
 $(OBJ) : $(2)
 	@echo "  AS      $$<"
-	$$(Q)$$(AS) $$(ASFLAGS) -c $$< -o $$@
+	$$(Q)$$(AS) $$(ASFLAGS) $$(LOCAL_CFLAGS) -c $$< -o $$@
 endef
 
 define MAKE_LD
@@ -198,10 +227,10 @@ define MAKE_MCU
 	$(eval SOURCES    := $(CoOS_SOURCES) $(PER_SOURCES) $(APP_SOURCES))
 	$(eval OBJS       := $(addprefix $(BUILD_DIR)/,$(call SOURCES_TO_OBJS,$(SOURCES))))
 	$(eval LINKERFILE := $(BUILD_BASE)/arm-gcc-link.ld)
-	$(eval MAPFILE    := $(BIN_DIR)/$(DEFAULT_PLAT).map)
-	$(eval ELF        := $(BIN_DIR)/$(DEFAULT_PLAT).elf)
-	$(eval DUMP       := $(BIN_DIR)/$(DEFAULT_PLAT).dump)
-	$(eval BIN        := $(BIN_DIR)/$(DEFAULT_PLAT).bin)
+	$(eval MAPFILE    := $(BIN_DIR)/$(PLAT).map)
+	$(eval ELF        := $(BIN_DIR)/$(PLAT).elf)
+	$(eval DUMP       := $(BIN_DIR)/$(PLAT).dump)
+	$(eval BIN        := $(BIN_DIR)/$(PLAT).bin)
 
 	$(eval $(call MAKE_OBJS,$(BUILD_DIR),$(SOURCES),$(1)))
 
@@ -227,8 +256,8 @@ $(BIN) : $(ELF)
 	@echo "Built $$@ successfully"
 	@echo
 
-.PHONY : cortex_m3
-cortex_m3 : $(BUILD_DIR) $(DUMP) $(BIN)
+.PHONY : ${ARCH}
+${ARCH} : $(BUILD_DIR) $(DUMP) $(BIN)
 endef
 
 $(eval $(call MAKE_MCU))
@@ -253,9 +282,9 @@ _version:
 	@echo
 	${Q}cp -r $(BIN) $(ELF) ${VER_BIN_DIR}/
 	${Q}git rm -f ${VER_BIN_DIR}/$(VER_BIN_PREFIX)*
-	${Q}mv ${VER_BIN_DIR}/$(DEFAULT_PLAT).bin \
+	${Q}mv ${VER_BIN_DIR}/$(PLAT).bin \
 		${VER_BIN_DIR}/$(VER_BIN_PREFIX)$(VER).bin
-	${Q}mv ${VER_BIN_DIR}/$(DEFAULT_PLAT).elf \
+	${Q}mv ${VER_BIN_DIR}/$(PLAT).elf \
 		${VER_BIN_DIR}/$(VER_BIN_PREFIX)$(VER).elf
 	${Q}git add ${VER_BIN_DIR}/$(VER_BIN_PREFIX)*
 	@echo
@@ -264,17 +293,26 @@ _version:
 
 clean:
 	@echo "  CLEAN"
-	${Q}rm -rf ${BUILD_PLAT}
-	${Q}rm -rf ${VER_BIN_DIR}/$(DEFAULT_PLAT)*
+	${Q}rm -rf ${BUILD_BASE}/${PLAT}
+	${Q}rm -rf ${VER_BIN_DIR}/$(PLAT)*
+
+distclean:
+	@echo "  DISTCLEAN"
+	${Q}rm -rf ${BUILD_BASE}/${PLAT}
+	${Q}rm -rf ${VER_BIN_DIR}/$(PLAT)*
+	${Q}rm -rf .config
 
 help:
-	@echo "usage: make [all|clean|cortex_m3|version VER=<version num>]"
+	@echo "usage: make PLAT=<${HELP_PLATFORMS}> <all|clean|distclean|version VER=[version num]>"
+	@echo ""
+	@echo "PLAT is used to specify which platform you wish to build."
+	@echo "If no platform is specified in first time, PLAT defaults to: ${DEFAULT_PLAT}"
 	@echo ""
 	@echo "Supported Targets:"
 	@echo "  all            		Build all the project"
-	@echo "  cortex_m3      		Build the Cortex-M3 project"
-	@echo "  clean          		Clean the project"
-	@echo "  version VER=<version num>	Add the new BIN to git version control"
+	@echo "  clean          		Clean the current platform project"
+	@echo "  distclean			Clean the current project and delete .config"
+	@echo "  version VER=[version num]	Add one new BIN for git version control"
 	@echo ""
-	@echo "example: build the targets for the Cortex-M3 project:"
-	@echo "  make cortex_m3"
+	@echo "example: build the targets for the Rk3368Mcu project:"
+	@echo "  make PLAT=Rk3368Mcu"

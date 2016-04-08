@@ -61,6 +61,7 @@ extern unsigned long __sram_data_start, __ssram_data, __esram_data;
 /*----------Function prototypes-----------------------------------------------*/  
 extern int main(void);           /*!< The entry point for the application.    */
 extern void dump_regs_info(U32 *stack); /* Dump stack information function */
+extern void set_mcujtag_iomux(void);
 
 void Default_Reset_Handler(void);   /*!< Default reset handler                */
 static void Default_Handler(void);  /*!< Default exception handler            */
@@ -88,7 +89,8 @@ void (* const g_pfnVectors[])(void) =
   PendSV_Handler,            /*!< PendSV Handler                              */
   SysTick_Handler,           /*!< SysTick Handler                             */
   
-  /*----------External Exceptions---------------------------------------------*/
+  /*----------256 External Exceptions-----------------------------------------*/
+#ifdef RK3368
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -102,6 +104,23 @@ void (* const g_pfnVectors[])(void) =
   Mbox_IRQHandler,		/*!< 139: Mbox0                               */
   Mbox_IRQHandler,		/*!< 140: Mbox0                               */
   Mbox_IRQHandler,		/*!< 141: Mbox0                               */
+#elif RK3366
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  Mbox_IRQHandler,		/*!< 128: Mbox0                               */
+  Mbox_IRQHandler,		/*!< 129: Mbox0                               */
+  Mbox_IRQHandler,		/*!< 130: Mbox0                               */
+  Mbox_IRQHandler,		/*!< 131: Mbox0                               */
+#else
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+#endif
 };
 
 
@@ -159,7 +178,10 @@ void Default_Reset_Handler(void)
   while(pulDest < &__esram_data) {
 	  *(pulDest++) = *(pulSrc++);
   }
-	
+
+  /* enable mcu jtag */
+  set_mcujtag_iomux();
+
   /* Call the application's entry point.*/
   main();
 }

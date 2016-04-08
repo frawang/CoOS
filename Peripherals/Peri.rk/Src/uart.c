@@ -39,7 +39,7 @@
 #include <peri.h>
 
 OS_MutexID	mut_uart;
-UartReg *pUart = (UartReg *)UART2_BASE;
+UartReg *pUart = (UartReg *)UART_DBG_BASE;
 
 void Uart_SendChar(unsigned char ch)
 {

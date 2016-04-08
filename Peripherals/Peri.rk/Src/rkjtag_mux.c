@@ -5,44 +5,48 @@
 OS_STK   task_jtagmux_stk[TASK_STK_SIZE];	 	/*!< Stack of 'task_ddr' task.	*/
 OS_STK   task_suspend_stk[TASK_STK_SIZE];
 
+#ifdef RK3368
 int jtag_mux_en = 0;
+#endif
+
+void set_mcujtag_iomux(void)
+{
+	u32 *grf_iomux = (u32 *)MCUJTAG_IOMUX_ADDR;
+
+	writel(MCUJTAG_IOMUX, grf_iomux);
+}
 
 void task_jtagmux(void *pdata)
 {
-    U32 *p;
-    p = (U32 *)0x400c0050;
-
-#if 0
-    /* no sdcard*/
-    if (*p & 0x1) {
-        /*mcu jtag iomux*/
-        pGRF_Reg->GRF_GPIO_IOMUX[1].GPIOB_IOMUX = (0xf<<(2+16)) | (0xa<<2);
-    }
+	u32 *p = (u32 *)(SDMMC_BASE + SDMMC_CDETECT);
+#ifndef RK3368
+	u32 *grf_iomux = (u32 *)MCUJTAG_IOMUX_ADDR;
 #endif
 
-    for (;;) {
-        /* the value of jtag_mux_en is passed from Linux via mailbox */
-        if ((jtag_mux_en == 1) && (*p & 0x1)) {
-            /*no sdcard and iomux is sdmmc*/
-            if((pGRF_Reg->GRF_GPIO_IOMUX[1].GPIOA_IOMUX & (0x3<<10)) == (0x1<<10))
-            {
-                /*check no sdcard again and fix iomux to jtag*/
-                if (*p & 0x1) {
-                    /*iomux-> jtag*/
-                    /*jtag_tck*/
-                    pGRF_Reg->GRF_GPIO_IOMUX[1].GPIOA_IOMUX = (0x3<<(14+16)) | (0x2<<14);
-                    /*jtag_tms*/
-                    pGRF_Reg->GRF_GPIO_IOMUX[1].GPIOB_IOMUX = (0x3<<16) | (0x2<<0);
-                    /*mcu jtag*/
-                    pGRF_Reg->GRF_GPIO_IOMUX[1].GPIOB_IOMUX = (0xf<<(2+16)) | (0xa<<2);
-                }
-            }
-        }
-        /*delay 3 second*/
-        CoTimeDelay(0,0,3,0);
-    }
-	
-    CoExitTask();
+	for (;;) {
+#ifdef RK3368
+		if (jtag_mux_en == 1) { /* controled by AP */
+#endif
+			/* does iomux select to sdmmc0_data0? */
+#ifdef RK3368
+			if ((readl(GRF_BASE + GRF_GPIO2A_IOMUX) & (0x3 << 10)) == 0x1 << 10) {
+#else
+			if ((readl(grf_iomux) & (0x3 << 0)) == 0x1 << 0) {
+#endif
+				/* check no sdcard again and fix iomux to jtag*/
+				if (*p & 0x1) {
+					/* set iomux to mcu jtag */
+					set_mcujtag_iomux();
+				}
+			}
+#ifdef RK3368
+		}
+#endif /* endif if jtag_mux_en ... */
+		/*delay 3 second*/
+		CoTimeDelay(0,0,3,0);
+	}
+
+	CoExitTask();
 }
 
 void Create_JtagMux_Task(void)
