@@ -271,14 +271,14 @@ sramlocalfunc static uint32  ddr_data_training(void)
 	pDDR_Reg->TREFI = (0x1<<31);
 	dram_bw = (pPHY_Reg->PHY_REG0 >> 4) & 0xf;
 	//pPHY_Reg->PHY_REG2 = PHY_DATA_TRAINING_SELECTCS(PHY_SELECT_CS0) | PHY_DTT_EN; /*training cs0*/
-    pPHY_Reg->PHY_REG2 = 0x21;
+    pPHY_Reg->PHY_REG2 = (pPHY_Reg->PHY_REG2 & 0xcc) | 0x21;
 	/*wait echo byte DTDONE*/
 	ddr_delayus(1);
 	/*stop DTT*/
 	while ((pPHY_Reg->PHY_REGff & 0xf) != dram_bw)
 	;
 //	pPHY_Reg->PHY_REG2 = PHY_DATA_TRAINING_SELECTCS(PHY_SELECT_CS0);
-    pPHY_Reg->PHY_REG2 = 0x20;
+    pPHY_Reg->PHY_REG2 = (pPHY_Reg->PHY_REG2 & 0xcc) | 0x20;
 	/*send some auto refresh to complement the lost while DTT*/
 	ddr_send_command(3, PREA_cmd, 0);
 	ddr_send_command(3, REF_cmd, 0);
