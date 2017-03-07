@@ -1889,7 +1889,7 @@ __sramfunc void ddr_resume(void)
 *cs_cap = 1 total cap,
 *cs_cap = 0 cs0 cap
 ********************/
-static uint32 ddr_get_cap(uint32 cs_cap)
+static U64 ddr_get_cap(uint32 cs_cap)
 {
 	uint32 cs, bank, row, col, row1, bw;
 
@@ -1900,10 +1900,10 @@ static uint32 ddr_get_cap(uint32 cs_cap)
 	bw = READ_BW_INFO();
 	if ((cs > 1) && (cs_cap == 1)) {
 		row1 = READ_CS1_ROW_INFO();
-		return ((1 << (row + col + bank + bw)) +
-			(1 << (row1 + col + bank + bw)));
+		return ((1llu << (row + col + bank + bw)) +
+			(1llu << (row1 + col + bank + bw)));
 	} else {
-		return (1 << (row + col + bank + bw));
+		return (1llu << (row + col + bank + bw));
 	}
 }
 
