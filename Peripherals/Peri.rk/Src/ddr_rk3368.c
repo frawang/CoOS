@@ -11,6 +11,12 @@ __sramdata static uint8 mmu_status;
 __sramdata static uint8 vop_status;
 __sramdata static uint8 id_mipi_dis;
 __sramdata uint32 dclk_vop_div;
+/*
+ * gdclk_mode = 0: use standard flow
+ * 1: vop dclk never divided
+ * 2: vop dclk always divided
+ */
+uint32 gdclk_mode = 0;
 
 static const uint8 ddr3_cl_cwl[22][7]={
 /*speed   0~330         331~400       401~533        534~666       667~800        801~933      934~1066
@@ -1764,21 +1770,25 @@ uint32 rk3368_ddr_change_freq(uint32 nMHz, uint32 lcdc_type)
 	{
 		nMHz = 600;
 	}
-
     ret = ddr_setSys_pll(nMHz, 0);
     if (ret == ddr_freq) {
         goto out;
     } 
 
     ddr_get_parameter(ret);
-    if((lcdc_type == SCREEN_MIPI) || (lcdc_type == SCREEN_DUAL_MIPI))
-    	id_mipi_dis = SCREEN_MIPI;
-    else if((lcdc_type == SCREEN_HDMI) || (lcdc_type == SCREEN_TVOUT) ||
-		(lcdc_type == SCREEN_RGB) || (lcdc_type == SCREEN_TVOUT_TEST))
+	if (gdclk_mode == 2) {
+		id_mipi_dis == SCREEN_EDP;
+	} else if (gdclk_mode == 1) {
 		id_mipi_dis = SCREEN_HDMI;
-	else
-		id_mipi_dis = lcdc_type;
-
+	} else {
+	    if((lcdc_type == SCREEN_MIPI) || (lcdc_type == SCREEN_DUAL_MIPI))
+			id_mipi_dis = SCREEN_MIPI;
+	    else if((lcdc_type == SCREEN_HDMI) || (lcdc_type == SCREEN_TVOUT) ||
+			(lcdc_type == SCREEN_RGB) || (lcdc_type == SCREEN_TVOUT_TEST))
+			id_mipi_dis = SCREEN_HDMI;
+		else
+			id_mipi_dis = lcdc_type;
+	}
 	__asm volatile 
 	(
 		" CPSID   I        \n"
@@ -1799,7 +1809,7 @@ rewait_vbank:
             while((((*(volatile uint32*)VOP_SYS_CTRL) & VOP_STAND_BY) == 0) &&
 				   (((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG1_STATUS) == 0))
 				continue;
-            //*(uint32 *)VOP_INTR_CLEAR = VOP_CLEAR_FLAG0;
+            *(uint32 *)VOP_INTR_CLEAR = VOP_CLEAR_FLAG0;
             ntf_cpu_into_wfe();
             if((((*(volatile uint32*)VOP_SYS_CTRL) & VOP_STAND_BY) == 0) &&
 	       ((*(volatile uint32*)VOP_INTR_STATUS) & VOP_FLAG0_STATUS))

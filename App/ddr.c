@@ -4,6 +4,7 @@
 
 OS_STK   task_ddr_stk[TASK_STK_SIZE];	 	/*!< Stack of 'task_ddr' task.	*/
 U32 gDdr_freq_MHz = 0;
+extern uint32 gdclk_mode;
 
 void Ddr_HandleCmd(MboxMsg *pMsg)
 {
@@ -46,12 +47,15 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 
 		volatile struct __packed2 {
 			U32 Status;
+			U32 freq;
 		} *pBuf_tx;
 
 		pBuf_rx = (volatile struct __packed1 *)pMsg->A2B_Buf;
 		pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
 		gDdr_freq_MHz = rk3368_ddr_change_freq(pBuf_rx->clk_rate, pBuf_rx->lcdc_type);
 		pBuf_tx->Status = SCPI_SUCCESS;
+		pBuf_tx->freq = gDdr_freq_MHz;
+
 		Mbox_CmdDone(pMsg);
 		break;
 	}
@@ -113,7 +117,7 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 
 		pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
 		pBuf_tx->Status = SCPI_SUCCESS;
-		pBuf_tx->clk_rate = ddr_get_dram_freq();
+		pBuf_tx->clk_rate = gDdr_freq_MHz;//ddr_get_dram_freq();
 		Mbox_CmdDone(pMsg);
 		break;
 	}	
@@ -126,6 +130,24 @@ void Ddr_HandleCmd(MboxMsg *pMsg)
 
 		rk3368_ddr_timing_receive((void *)(pMsg->A2B_Buf), pMsg->A2B_Size);
 		pBuf_tx->Status = SCPI_SUCCESS;
+		Mbox_CmdDone(pMsg);
+		break;
+	}
+	case SCPI_DDR_DCLK_MODE: {
+		volatile struct __packed1 {
+			U32 dclk_mode;
+		} *pBuf_rx;
+
+		volatile struct __packed2 {
+			U32 Status;
+		} *pBuf_tx;
+
+		pBuf_rx = (volatile struct __packed1 *)pMsg->A2B_Buf;
+		pBuf_tx = (volatile struct __packed2 *)pMsg->B2A_Buf;
+
+		gdclk_mode = pBuf_rx->dclk_mode;
+		pBuf_tx->Status = SCPI_SUCCESS;
+
 		Mbox_CmdDone(pMsg);
 		break;
 	}

@@ -54,6 +54,7 @@ typedef enum scpi_ddr_cmd {
     SCPI_DDR_BANDWIDTH_GET,
     SCPI_DDR_GET_FREQ,
     SCPI_DDR_SEND_TIMING,
+    SCPI_DDR_DCLK_MODE,
 } Scpi_DdrCmd;
 
 typedef enum scpi_sys_cmd {
