@@ -10,7 +10,7 @@
 #define _APP_CONFIG_H
 
 /* MCU version Definition */
-#define MCU_SW_VERSION  "V2.14 20160202"
+#define MCU_SW_VERSION  "V2.14 20170412"
 
 
 /* Support TSADC in MCU */

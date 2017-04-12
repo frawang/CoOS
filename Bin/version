@@ -1,4 +1,5 @@
 -------------------------------------------------------------------------------
+V2.14  20170412	 Support kernel_4.4
 V2.13  20160119  Support A53 to control jtagmux task via mailbox message
 V2.12  20151111  RK3368 DDR: optimizing DDR timing
 V2.11  20150910  Adding config ddr timing(sr_idle,drv,odt...) function through dts
